@@ -1,15 +1,18 @@
-const express = require("express");
-const router = express.Router();
-const upload = require("../config/multer");
+// /routes/upload.js
+import express from "express";
+import multer from "multer";
+import cloudinary from "../config/cloudinary.js";
 
-// MULTIPLE upload (max 10 files)
-router.post("/upload", upload.array("files", 10), (req, res) => {
+const router = express.Router();
+const upload = multer({ dest: "uploads/" });
+
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const urls = req.files.map(file => file.path); // Cloudinary URL
-    res.json({ success: true, urls });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    const result = await cloudinary.uploader.upload(req.file.path);
+    res.json({ imageUrl: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-module.exports = router;
+export default router;
