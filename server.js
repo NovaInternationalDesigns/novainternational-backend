@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
+import purchaseOrderRoute from "./routes/purchaseOrder.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/purchase-order", purchaseOrderRoute);
 
 // Test route
 app.get("/", (req, res) => res.send("Backend is running..."));
