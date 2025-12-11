@@ -6,6 +6,7 @@ import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
 
+
 dotenv.config();
 
 const app = express();
@@ -21,6 +22,8 @@ app.use(express.json());
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
+app.use("/api/purchaseOrderDraft.js", purchaseOrderRoute);
+
 
 // Test route
 app.get("/", (req, res) => res.send("Backend is running..."));
