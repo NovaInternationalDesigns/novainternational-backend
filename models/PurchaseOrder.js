@@ -1,22 +1,27 @@
 import mongoose from "mongoose";
 
-const itemSchema = new mongoose.Schema({
-  styleNo: String,       // product _id or SKU
-  description: String,   // product name
-  qty: { type: Number, default: 1 },
-  price: { type: Number, default: 0 },
-  total: { type: Number, default: 0 },
+const itemSchema = mongoose.Schema({
+  styleNo: { type: String, required: true },
+  description: { type: String, required: true },
+  color: { type: String, required: true },
+  qty: { type: Number, required: true },
+  price: { type: Number, required: true },
+  total: { type: Number, required: true },
 });
 
-const purchaseOrderSchema = new mongoose.Schema({
+const purchaseOrderSchema = mongoose.Schema({
+  bankName: { type: String, required: true },
+  accountNo: { type: String, required: true },
+  routingNo: { type: String, required: true },
   customerName: { type: String, required: true },
-  attn: String,
-  address: String,
-  tel: String,
-  fax: String,
-  notes: String,
+  attn: { type: String, required: true },
+  address: { type: String, required: true },
+  tel: { type: String, required: true },
+  fax: { type: String },
+  notes: { type: String },
   items: [itemSchema],
-  createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
-export default mongoose.model("PurchaseOrder", purchaseOrderSchema);
+const PurchaseOrder = mongoose.model("PurchaseOrder", purchaseOrderSchema);
+
+export default PurchaseOrder;
