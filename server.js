@@ -7,7 +7,8 @@ import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
 
 
-dotenv.config();
+dotenv.config();  // <-- loads .env file
+console.log("Using MongoDB URI:", process.env.MONGO_URI);
 
 const app = express();
 
