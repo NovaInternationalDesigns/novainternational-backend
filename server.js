@@ -18,7 +18,7 @@ connectDB();
 // Middleware
 // app.use(cors({ origin: "*", methods: ["GET","POST","PUT","DELETE"] }));
 
-app.use(cors({origin: ["http://localhost:5173","https://nova-international-test.netlify.app"]}));
+app.use(cors({origin: "*"})); // Allow all origins
 
 app.use(express.json());
 
