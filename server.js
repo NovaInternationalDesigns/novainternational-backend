@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
+import mongoose from "mongoose";
 
 
 dotenv.config();  // <-- loads .env file
@@ -27,6 +28,15 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
 app.use("/api/purchaseOrderDraft.js", purchaseOrderRoute);
+
+
+// Health check route
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    mongoState: mongoose.connection.readyState
+  });
+});
 
 
 // Test route
