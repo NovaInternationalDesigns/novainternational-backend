@@ -7,8 +7,16 @@ const ProductSchema = new mongoose.Schema(
       required: true
     },
     price: Number,
-    category: String,
+
+    category: {
+    type: String,
+    required: true, // electronics, fashion, robots
+    },
+    subcategory: {
+    type: String,   // fans, vacuum, clutches
+    },
     colors: [String],
+    slug: { type: String, unique: true },
     sizes: [String],
     minQty: Number,
     images: [String],
