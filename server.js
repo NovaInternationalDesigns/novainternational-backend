@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
@@ -14,67 +15,85 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Database
+// Database
 connectDB();
 
-// ✅ Middleware: JSON
+// JSON
 app.use(express.json());
 
-// ✅ Environment-based CORS
+// CORS
 const allowedOrigins = [
-  "https://calm-blini-7a30a5.netlify.app",  // dev Netlify
-  "https://www.novainternationaldesigns.com" // production
+  "http://localhost:5173",
+  "https://calm-blini-7a30a5.netlify.app",
+  "https://www.novainternationaldesigns.com",
 ];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // allow Postman or server requests with no origin
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true, // allow cookies
-}));
+    },
+    credentials: true,
+  })
+);
 
-// ✅ Session (MUST be before routes)
-app.use(session({
-  name: "nova.sid",
-  secret: process.env.SESSION_SECRET || "hello_nova",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // must be true in prod (HTTPS)
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-domain cookies in prod
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  }
-}));
+// Session
+app.use(
+  session({
+    name: "nova.sid",
+    secret: process.env.SESSION_SECRET || "secret-key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({mongoUrl: process.env.MONGO_URI, }),
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
-// ✅ Routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
 
-// ✅ Health check
+// Health
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    mongoState: mongoose.connection.readyState
+    mongoState: mongoose.connection.readyState,
   });
 });
 
-// ✅ Root test
+// Root
 app.get("/", (req, res) => {
   res.send("Backend is running...");
 });
 
-// ✅ Start server
+// Logout
+app.post("/api/auth/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Logout failed" });
+    }
+
+    res.clearCookie("nova.sid", {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.json({ message: "Logged out successfully" });
+  });
+});
+
+// Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

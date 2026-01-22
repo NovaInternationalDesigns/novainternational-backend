@@ -1,22 +1,40 @@
-import express from "express";
-import User from "../../models/User.js";
+import { createContext, useEffect, useState } from "react";
 
-const router = express.Router();
+export const UserContext = createContext(null);
 
-router.get("/", async (req, res) => {
-  try {
-    if (!req.session || !req.session.userId) {
-      return res.status(401).json({ message: "Not logged in" });
-    }
+export const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-    const user = await User.findById(req.session.userId).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/me`,
+          { credentials: "include" }
+        );
 
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+        if (!res.ok) {
+          setUser(null);
+          setLoadingUser(false);
+          return;
+        }
 
-export default router;
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  return (
+    <UserContext.Provider value={{ user, setUser, loadingUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};

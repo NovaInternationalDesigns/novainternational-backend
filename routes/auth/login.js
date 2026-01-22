@@ -1,9 +1,11 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import User from "../../models/User.js";
+// src/routes/auth/login.js
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import User from '../../models/User.js';
 
 const router = express.Router();
 
+// POST /api/auth/login
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
 
@@ -18,18 +20,15 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    req.session.userId = user._id;
+    // Session setup
+    req.session.userId = user._id;  // Save session
 
     res.json({
       message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role || 'buyer' }
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
