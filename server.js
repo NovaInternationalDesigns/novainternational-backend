@@ -4,9 +4,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-
 import connectDB from "./config/db.js";
-import authRoutes from "./routes/auth.js";
+import authRoutes from "./routes/auth/index.js";
 import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";

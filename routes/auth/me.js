@@ -1,40 +1,26 @@
-import { createContext, useEffect, useState } from "react";
+import express from "express";
+import User from "../../models/User.js";
 
-export const UserContext = createContext(null);
+const router = express.Router();
 
-export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+router.get("/", async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/auth/me`,
-          { credentials: "include" }
-        );
+  try {
+    const user = await User.findById(req.session.userId).select("-password");
 
-        if (!res.ok) {
-          setUser(null);
-          setLoadingUser(false);
-          return;
-        }
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  return (
-    <UserContext.Provider value={{ user, setUser, loadingUser }}>
-      {children}
-    </UserContext.Provider>
-  );
-};
+export default router;

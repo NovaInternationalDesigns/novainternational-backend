@@ -10,20 +10,62 @@
     ]
   },
   {
-    "name": "T2",
+    "name": "Kids Robot",
     "price": 999.99,
     "category": "Robots",
-    "slug": "t2-2",
+    "slug": "kids-robot",
     "minQty": 500,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
   },
   {
-    "name": "Vacuum Sealing Machine",
+    "name": "Technologically Advanced Robots",
+    "price": 999.99,
+    "category": "Robots",
+    "slug": "technologically-advanced-robots",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
+  },
+  {
+    "name": "vacuum Sealing Machine",
     "price": 79.99,
     "category": "Electronics",
     "subcategory": "vacuum-sealing-machine",
     "slug": "vacuum-sealing-machine",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
+    ]
+  },
+  {
+    "name": "Zip Lock Vacuum Sealers",
+    "price": 79.99,
+    "category": "Electronics",
+    "subcategory": "vacuum-sealing-machine",
+    "slug": "zip-lock-vacuum-sealers",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
+    ]
+  },
+  {
+    "name": "Kitchenware Vacuum Sealers",
+    "price": 79.99,
+    "category": "Electronics",
+    "subcategory": "vacuum-sealing-machine",
+    "slug": "kitchenware-vacuum-sealers",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
+    ]
+  },
+  {
+    "name": "Technologically Advance Vacuum Sealers",
+    "price": 79.99,
+    "category": "Electronics",
+    "subcategory": "vacuum-sealing-machine",
+    "slug": "technologically-advance-vacuum-sealers",
     "minQty": 500,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
@@ -57,6 +99,39 @@
     "category": "Electronics",
     "subcategory": "campfire-light",
     "slug": "campfire-light",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
+    ]
+  },
+   {
+    "name": "Bluetooth & Wireless Speakers",
+    "price": 299.99,
+    "category": "Electronics",
+    "subcategory": "campfire-light",
+    "slug": "bluetooth-wireless-speakers",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
+    ]
+  },
+    {
+    "name": "Campfire Bluetooth Speakers",
+    "price": 299.99,
+    "category": "Electronics",
+    "subcategory": "campfire-light",
+    "slug": "campfire-bluetooth-speakers",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
+    ]
+  },
+   {
+    "name": "Technologically Advanced Bluetooth Speakers",
+    "price": 299.99,
+    "category": "Electronics",
+    "subcategory": "campfire-light",
+    "slug": " technologically-advanced-bluetooth-speakers",
     "minQty": 500,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
@@ -264,6 +339,28 @@
     "category": "Electronics",
     "subcategory": "bladeless-fan",
     "slug": "bladeless-fan",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
+    ]
+  },
+  {
+    "name": "Technologically Advanced Fans",
+    "price": 999.99,
+    "category": "Electronics",
+    "subcategory": "bladeless-fan",
+    "slug": "technologically-advanced-fans",
+    "minQty": 500,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
+    ]
+  },
+{
+    "name": "Musical Fans",
+    "price": 999.99,
+    "category": "Electronics",
+    "subcategory": "bladeless-fan",
+    "slug": "musical-fans",
     "minQty": 500,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
