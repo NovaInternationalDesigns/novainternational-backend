@@ -15,6 +15,6 @@ const UserSchema = new mongoose.Schema(
     cart: { type: [CartItemSchema], default: [] }, // Store the cart items here
   },
   { timestamps: true }
-);
+);  
 
 export default mongoose.model("User", UserSchema);

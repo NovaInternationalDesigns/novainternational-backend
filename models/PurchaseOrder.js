@@ -4,6 +4,7 @@ const itemSchema = mongoose.Schema({
   styleNo: { type: String, required: true },
   description: { type: String, required: true },
   color: { type: String, required: true },
+  size: { type: String },
   qty: { type: Number, required: true },
   price: { type: Number, required: true },
   total: { type: Number, required: true },

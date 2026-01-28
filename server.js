@@ -5,19 +5,23 @@ import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import connectDB from "./config/db.js";
+
+// Routes
 import authRoutes from "./routes/auth/index.js";
 import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
+import purchaseOrderDraftRoutes from "./routes/purchaseOrderDraft.js";
+import signupRouter from "./routes/auth/signup.js"; 
 
 dotenv.config();
 
 const app = express();
 
-// Database
+// Connect to database
 connectDB();
 
-// JSON
+// Middleware
 app.use(express.json());
 
 // CORS
@@ -45,12 +49,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "secret-key",
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({mongoUrl: process.env.MONGO_URI, }),
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
 );
@@ -60,8 +64,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
+app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
 
-// Health
+// Add signup route
+app.use("/api/signup", signupRouter);
+
+// Health check
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",

@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import User from "../../models/User.js";
+import { sendWelcomeEmail } from "../../utils/mailer.js"; 
 
 const router = express.Router();
 
@@ -23,6 +24,9 @@ router.post("/", async (req, res) => {
 
     req.session.userId = user._id;
 
+    // Send welcome email asynchronously (errors won't block signup)
+    sendWelcomeEmail(email, name);
+
     res.status(201).json({
       user: {
         id: user._id,
@@ -31,6 +35,7 @@ router.post("/", async (req, res) => {
       },
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
