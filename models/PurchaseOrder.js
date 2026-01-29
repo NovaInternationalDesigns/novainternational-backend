@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const itemSchema = mongoose.Schema({
   styleNo: { type: String, required: true },
   description: { type: String, required: true },
-  color: { type: String, required: true },
-  size: { type: String },
+  color: { type: String, required: false },
+  size: { type: String, required: false, default: "" },
   qty: { type: Number, required: true },
   price: { type: Number, required: true },
   total: { type: Number, required: true },
