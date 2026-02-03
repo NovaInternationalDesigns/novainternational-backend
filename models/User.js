@@ -13,6 +13,8 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, default: "buyer" },
     cart: { type: [CartItemSchema], default: [] }, // Store the cart items here
+    isPaid: { type: Boolean, default: false },
+    paymentId: String,
   },
   { timestamps: true }
 );  

@@ -13,6 +13,8 @@ import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
 import purchaseOrderDraftRoutes from "./routes/purchaseOrderDraft.js";
 import signupRouter from "./routes/auth/signup.js"; 
+import paymentRoutes from "./routes/payment.js";
+import webhookRoutes from "./routes/webhook.js";
 
 dotenv.config();
 
@@ -65,6 +67,10 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
 app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
+
+// Payment and Webhook Routes
+app.use("/api/webhook", webhookRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Add signup route
 app.use("/api/signup", signupRouter);

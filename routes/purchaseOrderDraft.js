@@ -1,5 +1,6 @@
 import express from "express";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
+import crypto from "crypto";
 
 const router = express.Router();
 
@@ -10,7 +11,9 @@ router.get("/:userId", async (req, res) => {
 
     let po = await PurchaseOrderDraft.findOne({ userId });
     if (!po) {
-      po = new PurchaseOrderDraft({ userId, items: [] });
+      const purchaseOrderId = crypto.randomBytes(16).toString("hex");
+      // create with purchaseOrderId
+      po = new PurchaseOrderDraft({ userId, purchaseOrderId, items: [] });
       await po.save();
     }
 
@@ -32,34 +35,47 @@ router.post("/:userId/items", async (req, res) => {
     }
 
     let po = await PurchaseOrderDraft.findOne({ userId });
-    if (!po) {
-      po = new PurchaseOrderDraft({ userId, items: [] });
+    if (!po) {    
+      const purchaseOrderId = crypto.randomBytes(16).toString("hex");
+      po = new PurchaseOrderDraft({ userId, purchaseOrderId, items: [] });
+      await po.save();
     }
 
-    items.forEach((item) => {
-      const existing = po.items.find(
-        (i) =>
-          i.productId === item.productId &&
-          i.color === item.color &&
-          i.size === item.size
-      );
+    // merge items into a plain array then atomically replace using findOneAndUpdate
+    const merged = [...po.items.map((i) => ({
+      productId: i.productId,
+      name: i.name,
+      price: i.price,
+      qty: i.qty,
+      color: i.color,
+      size: i.size,
+    }))];
 
-      if (existing) {
-        existing.qty += Number(item.quantity || 0);
+    items.forEach((item) => {
+      const idx = merged.findIndex(
+        (i) => i.productId === item.productId && i.color === item.color && i.size === item.size
+      );
+      if (idx > -1) {
+        merged[idx].qty = (Number(merged[idx].qty) || 0) + (Number(item.quantity) || 0);
       } else {
-        po.items.push({
+        merged.push({
           productId: item.productId,
           name: item.name,
           price: item.price,
-          qty: Number(item.quantity || 0),
+          qty: Number(item.quantity) || 0,
           color: item.color || null,
           size: item.size || null,
         });
       }
     });
 
-    await po.save();
-    res.json({ message: "Order added successfully", po });
+    const updated = await PurchaseOrderDraft.findOneAndUpdate(
+      { userId },
+      { $set: { items: merged } },
+      { new: true, upsert: true }
+    );
+
+    res.json({ message: "Order added successfully", po: updated });
   } catch (err) {
     console.error("Error adding items to PO:", err);
     res.status(500).json({ error: "Failed to update PO draft" });
@@ -77,8 +93,7 @@ router.post("/:userId/items", async (req, res) => {
 
       if (productId) {
         // Remove matching items (match productId + optional color + size)
-        const beforeCount = po.items.length;
-        po.items = po.items.filter(
+        const newItems = po.items.filter(
           (i) => !(
             i.productId === productId &&
             (color ? i.color === color : true) &&
@@ -86,18 +101,26 @@ router.post("/:userId/items", async (req, res) => {
           )
         );
 
-        if (po.items.length === beforeCount) {
+        if (newItems.length === po.items.length) {
           return res.status(404).json({ error: "Item not found in draft" });
         }
 
-        await po.save();
-        return res.json({ message: "Item removed", po });
+        const updated = await PurchaseOrderDraft.findOneAndUpdate(
+          { userId },
+          { $set: { items: newItems } },
+          { new: true }
+        );
+
+        return res.json({ message: "Item removed", po: updated });
       }
 
       // No productId -> clear all items
-      po.items = [];
-      await po.save();
-      return res.json({ message: "Draft cleared", po });
+      const cleared = await PurchaseOrderDraft.findOneAndUpdate(
+        { userId },
+        { $set: { items: [] } },
+        { new: true }
+      );
+      return res.json({ message: "Draft cleared", po: cleared });
     } catch (err) {
       console.error("Error deleting items from PO:", err);
       res.status(500).json({ error: "Failed to delete items from PO" });

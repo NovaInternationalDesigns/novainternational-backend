@@ -11,6 +11,7 @@ const draftItemSchema = new mongoose.Schema({
 
 const purchaseOrderDraftSchema = new mongoose.Schema({
   userId: String,
+  purchaseOrderId: { type: String, required: true, unique: true },
   items: [draftItemSchema],
 });
 
