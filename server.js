@@ -12,11 +12,22 @@ import uploadRoutes from "./routes/upload.js";
 import productRoutes from "./routes/product.js";
 import purchaseOrderRoute from "./routes/purchaseOrder.js";
 import purchaseOrderDraftRoutes from "./routes/purchaseOrderDraft.js";
-import signupRouter from "./routes/auth/signup.js"; 
+import signupRouter from "./routes/auth/signup.js";
 import paymentRoutes from "./routes/payment.js";
 import webhookRoutes from "./routes/webhook.js";
+import guestRoutes from "./routes/guests.js";
+import ordersRoutes from "./routes/orders.js";
 
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const env = process.env.NODE_ENV;
+
+if (env === "production") {
+  dotenv.config({ path: ".env.production" });
+} else if (env === "test") {
+  dotenv.config({ path: ".env.test" });
+} else {
+  dotenv.config(); // defaults to .env
+}
 
 const app = express();
 
@@ -29,7 +40,7 @@ app.use(express.json());
 // CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://calm-blini-7a30a5.netlify.app",
+  // "https://calm-blini-7a30a5.netlify.app",
   "https://www.novainternationaldesigns.com",
 ];
 
@@ -54,8 +65,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: env === "production",
+      sameSite: env === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -67,6 +78,8 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchase-order", purchaseOrderRoute);
 app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
+app.use("/api/guests", guestRoutes);
+app.use("/api/orders", ordersRoutes);
 
 // Payment and Webhook Routes
 app.use("/api/webhook", webhookRoutes);
@@ -97,8 +110,8 @@ app.post("/api/auth/logout", (req, res) => {
 
     res.clearCookie("nova.sid", {
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: env === "production" ? "none" : "lax",
+      secure: env === "production",
     });
 
     res.json({ message: "Logged out successfully" });
