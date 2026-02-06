@@ -40,7 +40,7 @@ app.use(express.json());
 // CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  // "https://calm-blini-7a30a5.netlify.app",
+  "https://calm-blini-7a30a5.netlify.app",
   "https://www.novainternationaldesigns.com",
 ];
 
@@ -52,6 +52,8 @@ app.use(
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
