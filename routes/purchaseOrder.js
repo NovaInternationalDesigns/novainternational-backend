@@ -3,12 +3,13 @@ import express from "express";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
 import crypto from "crypto";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { email, userId, purchaseOrderId: incomingPOId } = req.body;
+    const { email, userId, guestId, purchaseOrderId: incomingPOId, ownerType, ownerId } = req.body;
 
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,10 +18,34 @@ router.post("/", async (req, res) => {
       }
     }
 
+    // Determine ownerType and ownerId from body or fallback to legacy fields
+    let finalOwnerType = ownerType;
+    let finalOwnerId = ownerId;
+
+    if (!finalOwnerType || !finalOwnerId) {
+      if (userId) {
+        finalOwnerType = "User";
+        finalOwnerId = userId;
+      } else if (guestId) {
+        finalOwnerType = "Guest";
+        finalOwnerId = guestId;
+      } else {
+        return res.status(400).json({ error: "Either userId or guestId must be provided" });
+      }
+    }
+
+    if (!["User", "Guest"].includes(finalOwnerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
+
     // ensure purchaseOrderId is set (prefer incoming, then draft, then generate)
     let purchaseOrderId = incomingPOId;
-    if (!purchaseOrderId && userId) {
-      const draft = await PurchaseOrderDraft.findOne({ userId });
+    if (!purchaseOrderId) {
+      // Convert ownerId to ObjectId for draft lookup
+      const ownerIdObj = mongoose.Types.ObjectId.isValid(finalOwnerId) 
+        ? new mongoose.Types.ObjectId(finalOwnerId)
+        : finalOwnerId;
+      const draft = await PurchaseOrderDraft.findOne({ ownerType: finalOwnerType, ownerId: ownerIdObj });
       if (draft && draft.purchaseOrderId) purchaseOrderId = draft.purchaseOrderId;
     }
     if (!purchaseOrderId) purchaseOrderId = crypto.randomBytes(16).toString("hex");
@@ -53,7 +78,14 @@ router.post("/", async (req, res) => {
       if (Object.keys(cleaned.shippingInfo).length === 0) delete cleaned.shippingInfo;
     }
 
-    const orderData = { ...cleaned, purchaseOrderId };
+    const orderData = {
+      ...cleaned,
+      purchaseOrderId,
+      ownerType: finalOwnerType,
+      ownerId: mongoose.Types.ObjectId.isValid(finalOwnerId) 
+        ? new mongoose.Types.ObjectId(finalOwnerId)
+        : finalOwnerId,
+    };
 
     // Try saving; if purchaseOrderId unique constraint conflicts, regenerate and retry a few times
     let order = null;

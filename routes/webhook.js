@@ -1,7 +1,8 @@
 import express from "express";
 import Stripe from "stripe";
 import PurchaseOrder from "../models/PurchaseOrder.js";
-import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js"; // <--- import draft model
+import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -35,11 +36,16 @@ router.post(
           await order.save();
           console.log(`✅ Payment confirmed for order ${orderId}`);
 
-          // 2️⃣ Clear purchase order draft for this user
-          if (order.userId) {
-            await PurchaseOrderDraft.deleteOne({ userId: order.userId });
+          // 2️⃣ Clear purchase order draft for this user or guest
+          if (order.ownerType === "User" && order.ownerId) {
+            await PurchaseOrderDraft.deleteOne({ ownerType: "User", ownerId: order.ownerId });
             console.log(
-              `🗑️ Cleared draft purchase order for user ${order.userId}`
+              `🗑️ Cleared draft purchase order for user ${order.ownerId}`
+            );
+          } else if (order.ownerType === "Guest" && order.ownerId) {
+            await PurchaseOrderDraft.deleteOne({ ownerType: "Guest", ownerId: order.ownerId });
+            console.log(
+              `🗑️ Cleared draft purchase order for guest ${order.ownerId}`
             );
           }
         }

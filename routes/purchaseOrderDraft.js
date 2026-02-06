@@ -1,20 +1,31 @@
 import express from "express";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
-import GuestPurchaseOrderDraft from "../models/GuestPurchaseOrderDraft.js";
 import crypto from "crypto";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-// Get draft PO for a user
-router.get("/:userId", async (req, res) => {
+/**
+ * GET /:ownerType/:ownerId
+ * Fetch or create a draft PO for a user or guest
+ */
+router.get("/:ownerType/:ownerId", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { ownerType, ownerId } = req.params;
 
-    let po = await PurchaseOrderDraft.findOne({ userId });
+    if (!["User", "Guest"].includes(ownerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
+
+    // Convert string ownerId to ObjectId for MongoDB query
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+      ? new mongoose.Types.ObjectId(ownerId)
+      : ownerId;
+
+    let po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
     if (!po) {
       const purchaseOrderId = crypto.randomBytes(16).toString("hex");
-      // create with purchaseOrderId
-      po = new PurchaseOrderDraft({ userId, purchaseOrderId, items: [] });
+      po = new PurchaseOrderDraft({ ownerType, ownerId: ownerIdObj, purchaseOrderId, items: [] });
       await po.save();
     }
 
@@ -25,24 +36,36 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-// Add/update items in draft PO
-router.post("/:userId/items", async (req, res) => {
+/**
+ * POST /:ownerType/:ownerId/items
+ * Add/update items in draft PO
+ */
+router.post("/:ownerType/:ownerId/items", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { ownerType, ownerId } = req.params;
     const { items } = req.body;
+
+    if (!["User", "Guest"].includes(ownerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Items array is required" });
     }
 
-    let po = await PurchaseOrderDraft.findOne({ userId });
-    if (!po) {    
+    // Convert string ownerId to ObjectId for MongoDB query
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+      ? new mongoose.Types.ObjectId(ownerId)
+      : ownerId;
+
+    let po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
+    if (!po) {
       const purchaseOrderId = crypto.randomBytes(16).toString("hex");
-      po = new PurchaseOrderDraft({ userId, purchaseOrderId, items: [] });
+      po = new PurchaseOrderDraft({ ownerType, ownerId: ownerIdObj, purchaseOrderId, items: [] });
       await po.save();
     }
 
-    // merge items into a plain array then atomically replace using findOneAndUpdate
+    // merge items into a plain array then atomically replace
     const merged = [...po.items.map((i) => ({
       productId: i.productId,
       name: i.name,
@@ -71,7 +94,7 @@ router.post("/:userId/items", async (req, res) => {
     });
 
     const updated = await PurchaseOrderDraft.findOneAndUpdate(
-      { userId },
+      { ownerType, ownerId: ownerIdObj },
       { $set: { items: merged } },
       { new: true, upsert: true }
     );
@@ -79,145 +102,33 @@ router.post("/:userId/items", async (req, res) => {
     res.json({ message: "Order added successfully", po: updated });
   } catch (err) {
     console.error("Error adding items to PO:", err);
-    res.status(500).json({ error: "Failed to update PO draft" });
+    res.status(500).json({ error: "Failed to update PO draft", details: err.message });
   }
 });
 
-  // Delete a single item from draft PO or clear all items
-  router.delete("/:userId/items", async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { productId, color, size } = req.body || {};
-
-      const po = await PurchaseOrderDraft.findOne({ userId });
-      if (!po) return res.status(404).json({ error: "Draft not found" });
-
-      if (productId) {
-        // Remove matching items (match productId + optional color + size)
-        const newItems = po.items.filter(
-          (i) => !(
-            i.productId === productId &&
-            (color ? i.color === color : true) &&
-            (size ? i.size === size : true)
-          )
-        );
-
-        if (newItems.length === po.items.length) {
-          return res.status(404).json({ error: "Item not found in draft" });
-        }
-
-        const updated = await PurchaseOrderDraft.findOneAndUpdate(
-          { userId },
-          { $set: { items: newItems } },
-          { new: true }
-        );
-
-        return res.json({ message: "Item removed", po: updated });
-      }
-
-      // No productId -> clear all items
-      const cleared = await PurchaseOrderDraft.findOneAndUpdate(
-        { userId },
-        { $set: { items: [] } },
-        { new: true }
-      );
-      return res.json({ message: "Draft cleared", po: cleared });
-    } catch (err) {
-      console.error("Error deleting items from PO:", err);
-      res.status(500).json({ error: "Failed to delete items from PO" });
-    }
-  });
-
-// ========== GUEST ROUTES ==========
-
-// Get draft PO for a guest
-router.get("/guest/:guestId", async (req, res) => {
+/**
+ * DELETE /:ownerType/:ownerId/items
+ * Delete a single item from draft PO or clear all items
+ */
+router.delete("/:ownerType/:ownerId/items", async (req, res) => {
   try {
-    const { guestId } = req.params;
-
-    let po = await GuestPurchaseOrderDraft.findOne({ guestId });
-    if (!po) {
-      const purchaseOrderId = crypto.randomBytes(16).toString("hex");
-      po = new GuestPurchaseOrderDraft({ guestId, purchaseOrderId, items: [] });
-      await po.save();
-    }
-
-    res.json(po);
-  } catch (err) {
-    console.error("Error fetching guest PO draft:", err);
-    res.status(500).json({ error: "Failed to fetch guest PO draft" });
-  }
-});
-
-// Add/update items in guest draft PO
-router.post("/guest/:guestId/items", async (req, res) => {
-  try {
-    const { guestId } = req.params;
-    const { items } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: "Items array is required" });
-    }
-
-    let po = await GuestPurchaseOrderDraft.findOne({ guestId });
-    if (!po) {
-      const purchaseOrderId = crypto.randomBytes(16).toString("hex");
-      po = new GuestPurchaseOrderDraft({ guestId, purchaseOrderId, items: [] });
-      await po.save();
-    }
-
-    // merge items
-    const merged = [...po.items.map((i) => ({
-      productId: i.productId,
-      name: i.name,
-      price: i.price,
-      qty: i.qty,
-      color: i.color,
-      size: i.size,
-    }))];
-
-    items.forEach((item) => {
-      const idx = merged.findIndex(
-        (i) => i.productId === item.productId && i.color === item.color && i.size === item.size
-      );
-      if (idx > -1) {
-        merged[idx].qty = (Number(merged[idx].qty) || 0) + (Number(item.quantity) || 0);
-      } else {
-        merged.push({
-          productId: item.productId,
-          name: item.name,
-          price: item.price,
-          qty: Number(item.quantity) || 0,
-          color: item.color || null,
-          size: item.size || null,
-        });
-      }
-    });
-
-    const updated = await GuestPurchaseOrderDraft.findOneAndUpdate(
-      { guestId },
-      { $set: { items: merged } },
-      { new: true, upsert: true }
-    );
-
-    res.json({ message: "Guest order added successfully", po: updated });
-  } catch (err) {
-    console.error("Error adding items to guest PO:", err);
-    res.status(500).json({ error: "Failed to update guest PO draft" });
-  }
-});
-
-// Delete a single item from guest draft PO or clear all items
-router.delete("/guest/:guestId/items", async (req, res) => {
-  try {
-    const { guestId } = req.params;
+    const { ownerType, ownerId } = req.params;
     const { productId, color, size } = req.body || {};
 
-    const po = await GuestPurchaseOrderDraft.findOne({ guestId });
-    if (!po) return res.status(404).json({ error: "Guest draft not found" });
+    if (!["User", "Guest"].includes(ownerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
+
+    // Convert string ownerId to ObjectId for MongoDB query
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+      ? new mongoose.Types.ObjectId(ownerId)
+      : ownerId;
+
+    const po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
+    if (!po) return res.status(404).json({ error: "Draft not found" });
 
     if (productId) {
-      // Remove matching items
+      // Remove matching items (match productId + optional color + size)
       const newItems = po.items.filter(
         (i) => !(
           i.productId === productId &&
@@ -227,11 +138,11 @@ router.delete("/guest/:guestId/items", async (req, res) => {
       );
 
       if (newItems.length === po.items.length) {
-        return res.status(404).json({ error: "Item not found in guest draft" });
+        return res.status(404).json({ error: "Item not found in draft" });
       }
 
-      const updated = await GuestPurchaseOrderDraft.findOneAndUpdate(
-        { guestId },
+      const updated = await PurchaseOrderDraft.findOneAndUpdate(
+        { ownerType, ownerId: ownerIdObj },
         { $set: { items: newItems } },
         { new: true }
       );
@@ -240,15 +151,15 @@ router.delete("/guest/:guestId/items", async (req, res) => {
     }
 
     // No productId -> clear all items
-    const cleared = await GuestPurchaseOrderDraft.findOneAndUpdate(
-      { guestId },
+    const cleared = await PurchaseOrderDraft.findOneAndUpdate(
+      { ownerType, ownerId: ownerIdObj },
       { $set: { items: [] } },
       { new: true }
     );
-    return res.json({ message: "Guest draft cleared", po: cleared });
+    return res.json({ message: "Draft cleared", po: cleared });
   } catch (err) {
-    console.error("Error deleting items from guest PO:", err);
-    res.status(500).json({ error: "Failed to delete items from guest PO" });
+    console.error("Error deleting items from PO:", err);
+    res.status(500).json({ error: "Failed to delete items from PO" });
   }
 });
 

@@ -16,7 +16,13 @@ router.get("/my-orders", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const orders = await PurchaseOrder.find({ userId: req.session.userId })
+    // Query by new schema (ownerType/ownerId) or fallback to old schema (userId)
+    const orders = await PurchaseOrder.find({
+      $or: [
+        { ownerType: "User", ownerId: req.session.userId },
+        { userId: req.session.userId } // fallback to old schema
+      ]
+    })
       .sort({ createdAt: -1 })
       .populate("userId", "name email");
 
@@ -41,8 +47,13 @@ router.get("/guest/:guestId", async (req, res) => {
       return res.status(404).json({ error: "Guest not found" });
     }
 
-    // Fetch all orders for this guest
-    const orders = await PurchaseOrder.find({ guestId })
+    // Fetch all orders for this guest using new schema or fallback to old schema
+    const orders = await PurchaseOrder.find({
+      $or: [
+        { ownerType: "Guest", ownerId: guestId },
+        { guestId } // fallback to old schema
+      ]
+    })
       .sort({ createdAt: -1 });
 
     res.json({ 
@@ -70,8 +81,13 @@ router.get("/user/:userId", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Fetch all orders for this user
-    const orders = await PurchaseOrder.find({ userId })
+    // Fetch all orders for this user using new schema or fallback to old schema
+    const orders = await PurchaseOrder.find({
+      $or: [
+        { ownerType: "User", ownerId: userId },
+        { userId } // fallback to old schema
+      ]
+    })
       .sort({ createdAt: -1 });
 
     res.json({ 
@@ -116,25 +132,18 @@ router.get("/search/:email", async (req, res) => {
   try {
     const { email } = req.params;
 
-    // Find user orders
-    const userOrders = await PurchaseOrder.find({ 
+    // Search for orders by email in multiple fields (handles both old and new schema)
+    const allOrders = await PurchaseOrder.find({
       $or: [
-        { email: { $regex: email, $options: "i" } },
+        { email: { $regex: email, $options: "i" } }, // old user email
+        { guestEmail: { $regex: email, $options: "i" } }, // old guest email
+        // Note: new schema doesn't store customer email directly; it's inferred from User/Guest models
       ]
     }).sort({ createdAt: -1 });
 
-    // Find guest orders
-    const guestOrders = await PurchaseOrder.find({ 
-      guestEmail: { $regex: email, $options: "i" }
-    }).sort({ createdAt: -1 });
-
-    const allOrders = [...userOrders, ...guestOrders];
-
     res.json({ 
       orders: allOrders,
-      count: allOrders.length,
-      userOrdersCount: userOrders.length,
-      guestOrdersCount: guestOrders.length
+      count: allOrders.length
     });
   } catch (err) {
     console.error("Error searching orders:", err);

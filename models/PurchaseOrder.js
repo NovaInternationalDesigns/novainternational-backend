@@ -17,14 +17,9 @@ const purchaseOrderSchema = new mongoose.Schema(
     // Unique purchase order identifier shared across draft/order/confirmation
     purchaseOrderId: { type: String, required: true, unique: true },
     
-    // User info (if logged in)
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-    
-    // Guest info (if guest checkout)
-    guestId: { type: mongoose.Schema.Types.ObjectId, ref: "Guest", default: null },
-    isGuest: { type: Boolean, default: false },
-    guestName: { type: String, default: null },
-    guestEmail: { type: String, default: null },
+    // Owner info (polymorphic: "User" or "Guest")
+    ownerType: { type: String, enum: ["User", "Guest"], required: true },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
     
     // Bank / Payment info (optional)
     bankName: { type: String },
