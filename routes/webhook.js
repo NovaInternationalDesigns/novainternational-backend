@@ -20,7 +20,7 @@ router.post(
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err) {
-      console.log("⚠️ Webhook signature verification failed.", err.message);
+      console.log("Webhook signature verification failed.", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -31,26 +31,26 @@ router.post(
       try {
         const order = await PurchaseOrder.findById(orderId);
         if (order) {
-          // 1️⃣ Mark order as paid
+          // 1️ Mark order as paid
           order.paymentStatus = "paid";
           await order.save();
-          console.log(`✅ Payment confirmed for order ${orderId}`);
+          console.log(`Payment confirmed for order ${orderId}`);
 
-          // 2️⃣ Clear purchase order draft for this user or guest
+          // 2️ Clear purchase order draft for this user or guest
           if (order.ownerType === "User" && order.ownerId) {
             await PurchaseOrderDraft.deleteOne({ ownerType: "User", ownerId: order.ownerId });
             console.log(
-              `🗑️ Cleared draft purchase order for user ${order.ownerId}`
+              `Cleared draft purchase order for user ${order.ownerId}`
             );
           } else if (order.ownerType === "Guest" && order.ownerId) {
             await PurchaseOrderDraft.deleteOne({ ownerType: "Guest", ownerId: order.ownerId });
             console.log(
-              `🗑️ Cleared draft purchase order for guest ${order.ownerId}`
+              `Cleared draft purchase order for guest ${order.ownerId}`
             );
           }
         }
       } catch (err) {
-        console.error("❌ Error processing webhook:", err);
+        console.error("Error processing webhook:", err);
       }
     }
 

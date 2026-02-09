@@ -34,8 +34,8 @@ export const sendWelcomeEmail = async (email, name) => {
       html: `<p>Hello <strong>${name}</strong>, welcome to Nova International!</p>`, // email body
     });
 
-    console.log("✅ Email sent to", email);
+    console.log("Email sent to", email);
   } catch (err) {
-    console.error("❌ Email error:", err);
+    console.error("Email error:", err);
   }
 };

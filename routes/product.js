@@ -4,7 +4,7 @@ import Product from "../models/Product.js";
 const router = express.Router();
 
 /**
- * ✅ GET PRODUCTS
+ * GET PRODUCTS
  * Examples:
  * /api/products
  * /api/products?category=fashion
@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * ✅ GET PRODUCT BY ID
+ * GET PRODUCT BY ID
  */
 router.get("/id/:id", async (req, res) => {
   try {
@@ -42,7 +42,7 @@ router.get("/id/:id", async (req, res) => {
 });
 
 /**
- * ✅ GET PRODUCT BY SLUG
+ * GET PRODUCT BY SLUG
  */
 router.get("/slug/:slug", async (req, res) => {
   try {
