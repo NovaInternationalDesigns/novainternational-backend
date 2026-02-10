@@ -2,8 +2,11 @@
 import express from "express";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
+import User from "../models/User.js";
+import Guest from "../models/Guest.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import { sendPurchaseOrderNotification, sendPurchaseOrderToAdmin } from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -111,6 +114,26 @@ router.post("/", async (req, res) => {
 
     if (!order) {
       throw new Error("Failed to save order after multiple attempts");
+    }
+
+    // Send email notifications
+    try {
+      // Get customer email
+      const customerEmail = orderData.email;
+      
+      // Send email to customer
+      if (customerEmail) {
+        await sendPurchaseOrderNotification(customerEmail, orderData);
+      }
+
+      // Send email to admin/owner
+      const adminEmail = process.env.SMTP_USER; // Admin email from env
+      if (adminEmail) {
+        await sendPurchaseOrderToAdmin(adminEmail, orderData);
+      }
+    } catch (emailErr) {
+      console.error("Error sending emails:", emailErr.message);
+      // Don't fail the order if emails fail
     }
 
     res.json({ message: "Order saved successfully", order });
