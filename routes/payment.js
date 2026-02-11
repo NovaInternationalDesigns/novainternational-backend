@@ -29,6 +29,7 @@ router.post("/create-checkout-session", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
+    // Map order items into Stripe line items
     const line_items = order.items.map((it) => ({
       price_data: {
         currency: "usd",
@@ -38,7 +39,7 @@ router.post("/create-checkout-session", async (req, res) => {
             styleNo: it.styleNo || "",
           },
         },
-        unit_amount: Math.round((it.price || 0) * 100),
+        unit_amount: Math.round((it.price || 0) * 100), // in cents
       },
       quantity: it.qty || 1,
     }));
@@ -46,34 +47,37 @@ router.post("/create-checkout-session", async (req, res) => {
     // Determine frontend URL based on environment
     let frontendUrl;
     if (process.env.NODE_ENV === "production") {
+      // Use production frontend URL, fallback to your Netlify URL
       frontendUrl = process.env.VITE_FRONTEND_URL_PRODUCTION || "https://calm-blini-7a30a5.netlify.app";
     } else {
+      // Use dev frontend URL, fallback to localhost
       frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
     }
 
-    // Ensure frontendUrl has a scheme (http/https)
-    let cleanFrontendUrl = frontendUrl;
-    if (!cleanFrontendUrl.startsWith("http://") && !cleanFrontendUrl.startsWith("https://")) {
-      cleanFrontendUrl = `https://${frontendUrl}`;
+    // Ensure URL starts with http or https
+    if (!frontendUrl.startsWith("http://") && !frontendUrl.startsWith("https://")) {
+      frontendUrl = `https://${frontendUrl}`;
     }
 
-    console.log(`[Stripe] Using frontend URL: ${cleanFrontendUrl} (NODE_ENV: ${process.env.NODE_ENV})`);
+    console.log(`[Stripe] Using frontend URL: ${frontendUrl} (NODE_ENV: ${process.env.NODE_ENV})`);
 
+    // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
-      success_url: `${cleanFrontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${cleanFrontendUrl}/checkout`,
+      success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/checkout`,
       metadata: {
         orderId: order._id.toString(),
       },
     });
 
-    // Save Stripe session ID to the order
+    // Save Stripe session ID to order document
     order.stripeSessionId = session.id;
     await order.save();
 
+    // Return session URL to frontend for redirect
     res.json({ url: session.url });
   } catch (err) {
     console.error("Stripe session error:", err);
@@ -104,6 +108,5 @@ router.get("/order/:sessionId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch order" });
   }
 });
-
 
 export default router;
