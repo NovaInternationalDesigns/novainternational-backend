@@ -43,14 +43,20 @@ router.post("/create-checkout-session", async (req, res) => {
       quantity: it.qty || 1,
     }));
 
-    const frontendUrl = process.env.VITE_FRONTEND_URL;
+    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+
+    // Ensure frontendUrl has a scheme (http/https)
+    let cleanFrontendUrl = frontendUrl;
+    if (!cleanFrontendUrl.startsWith("http://") && !cleanFrontendUrl.startsWith("https://")) {
+      cleanFrontendUrl = `https://${frontendUrl}`;
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
-      success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontendUrl}/checkout`,
+      success_url: `${cleanFrontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${cleanFrontendUrl}/checkout`,
       metadata: {
         orderId: order._id.toString(),
       },

@@ -6,11 +6,7 @@ import User from "../models/User.js";
 import Guest from "../models/Guest.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
-<<<<<<< HEAD
 import { sendPurchaseOrderConfirmation } from "../utils/mailer.js";
-=======
-import { sendPurchaseOrderNotification, sendPurchaseOrderToAdmin } from "../utils/mailer.js";
->>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
 
 const router = express.Router();
 
@@ -143,10 +139,9 @@ router.post("/", async (req, res) => {
       throw new Error("Failed to save order after multiple attempts");
     }
 
-<<<<<<< HEAD
     // Send confirmation email if we have an email on the saved order
     if (order.email) {
-      console.log("📧 Sending purchase order confirmation to:", order.email);
+      console.log("Sending purchase order confirmation to:", order.email);
       await sendPurchaseOrderConfirmation(order.email, {
         purchaseOrderId: order.purchaseOrderId,
         customerName: order.customerName,
@@ -161,26 +156,6 @@ router.post("/", async (req, res) => {
       });
     } else {
       console.warn("⚠ No email available on order - skipping purchase order confirmation");
-=======
-    // Send email notifications
-    try {
-      // Get customer email
-      const customerEmail = orderData.email;
-      
-      // Send email to customer
-      if (customerEmail) {
-        await sendPurchaseOrderNotification(customerEmail, orderData);
-      }
-
-      // Send email to admin/owner
-      const adminEmail = process.env.SMTP_USER; // Admin email from env
-      if (adminEmail) {
-        await sendPurchaseOrderToAdmin(adminEmail, orderData);
-      }
-    } catch (emailErr) {
-      console.error("Error sending emails:", emailErr.message);
-      // Don't fail the order if emails fail
->>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
     }
 
     res.json({ message: "Order saved successfully", order });

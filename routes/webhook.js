@@ -35,7 +35,6 @@ router.post(
       try {
         const order = await PurchaseOrder.findById(orderId);
         if (order) {
-<<<<<<< HEAD
           console.log("✓ Order found");
           console.log("  Email on record:", order.email);
           console.log("  Customer:", order.customerName);
@@ -64,38 +63,18 @@ router.post(
             await PurchaseOrderDraft.deleteOne({ ownerType: "User", ownerId: order.ownerId });
             console.log(
               `✓ Cleared draft purchase order for user ${order.ownerId}`
-=======
-          // 1️ Mark order as paid
-          order.paymentStatus = "paid";
-          await order.save();
-          console.log(`Payment confirmed for order ${orderId}`);
-
-          // 2️ Clear purchase order draft for this user or guest
-          if (order.ownerType === "User" && order.ownerId) {
-            await PurchaseOrderDraft.deleteOne({ ownerType: "User", ownerId: order.ownerId });
-            console.log(
-              `Cleared draft purchase order for user ${order.ownerId}`
->>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
             );
           } else if (order.ownerType === "Guest" && order.ownerId) {
             await PurchaseOrderDraft.deleteOne({ ownerType: "Guest", ownerId: order.ownerId });
             console.log(
-<<<<<<< HEAD
               `✓ Cleared draft purchase order for guest ${order.ownerId}`
-=======
-              `Cleared draft purchase order for guest ${order.ownerId}`
->>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
             );
           }
         } else {
           console.error("✗ Order not found:", orderId);
         }
       } catch (err) {
-<<<<<<< HEAD
         console.error("✗ Error processing webhook:", err.message);
-=======
-        console.error("Error processing webhook:", err);
->>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
       }
     }
 
