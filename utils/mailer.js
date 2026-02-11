@@ -19,9 +19,15 @@ const transporter = nodemailer.createTransport({
 // Optional: Verify SMTP connection
 transporter.verify((err, success) => {
   if (success) {
+<<<<<<< HEAD
     console.log("✓ Email service connected - Gmail SMTP Ready");
   } else {
     console.error("✗ Email service failed:", err ? err.message : "Unknown error");
+=======
+    console.log("Email service connected - Gmail SMTP Ready");
+  } else {
+    console.error("  Email service failed:", err ? err.message : "Unknown error");
+>>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
     console.error("  Check your Gmail credentials in .env file");
     console.error("  SMTP_USER:", process.env.SMTP_USER);
     console.error("  SMTP_PASS length:", process.env.SMTP_PASS ? process.env.SMTP_PASS.length : "NOT SET");
@@ -42,9 +48,15 @@ export const sendWelcomeEmail = async (email, name) => {
       html: `<p>Hello <strong>${name}</strong>, welcome to Nova International!</p>`, // email body
     });
 
+<<<<<<< HEAD
     console.log("✓ Email sent to", email);
   } catch (err) {
     console.error("⚠ Email sending failed:", err.message);
+=======
+    console.log("Email sent to", email);
+  } catch (err) {
+    console.error("Email sending failed:", err.message);
+>>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
   }
 };
 
@@ -321,10 +333,17 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
       html: htmlContent,
     });
 
+<<<<<<< HEAD
     console.log("✓ Purchase order confirmation email sent to", email);
     return true;
   } catch (err) {
     console.error("⚠ Failed to send purchase order email:", err.message);
+=======
+    console.log("Purchase order confirmation email sent to", email);
+    return true;
+  } catch (err) {
+    console.error("Failed to send purchase order email:", err.message);
+>>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
     return false;
   }
 };
@@ -525,10 +544,582 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
       html: htmlContent,
     });
 
+<<<<<<< HEAD
     console.log("✓ Payment confirmation email sent to", email);
     return true;
   } catch (err) {
     console.error("⚠ Failed to send payment confirmation email:", err.message);
+=======
+    console.log("Payment confirmation email sent to", email);
+    return true;
+  } catch (err) {
+    console.error("Failed to send payment confirmation email:", err.message);
+    return false;
+  }
+};
+
+/**
+ * Send purchase order notification to customer
+ * @param {string} email - Customer email
+ * @param {Object} orderData - Purchase order data
+ */
+export const sendPurchaseOrderNotification = async (email, orderData) => {
+  try {
+    const {
+      purchaseOrderId,
+      customerName,
+      items = [],
+      totalAmount,
+      shippingInfo,
+      notes,
+      createdAt,
+    } = orderData;
+
+    // Format date
+    const orderDate = createdAt
+      ? new Date(createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+      : new Date().toLocaleDateString();
+
+    // Build items HTML
+    let itemsHTML = items
+      .map(
+        (item) =>
+          `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+          <strong>${item.styleNo || "N/A"}</strong> - ${item.description}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.color || "-"}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.size || "-"}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.qty}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          $${item.price.toFixed(2)}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">
+          $${(item.total || item.qty * item.price).toFixed(2)}
+        </td>
+      </tr>
+    `
+      )
+      .join("");
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+            background-color: #ffffff;
+            padding: 30px;
+            border-bottom: 2px solid #667eea;
+            text-align: center;
+          }
+          .header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 28px;
+          }
+          .header p {
+            color: #666;
+            margin: 5px 0 0 0;
+          }
+          .content {
+            background-color: #ffffff;
+            padding: 30px;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            color: #667eea;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .order-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            margin-bottom: 15px;
+          }
+          .order-info p {
+            margin: 5px 0;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #667eea;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+          }
+          th {
+            background-color: #667eea;
+            color: white;
+            text-align: left;
+            padding: 12px;
+            font-weight: bold;
+          }
+          .total-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+          }
+          .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            border-top: 2px solid #667eea;
+            padding-top: 10px;
+          }
+          .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+          }
+          .contact-info {
+            color: #667eea;
+            font-weight: bold;
+          }
+          .shipping-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Purchase Order Received</h1>
+            <p>Thank you for your purchase order with Nova International Designs</p>
+          </div>
+
+          <div class="content">
+            <!-- Order Confirmation -->
+            <div class="section">
+              <h2>Order Details</h2>
+              <div class="order-info">
+                <p><span class="info-label">Purchase Order ID:</span> <strong>${purchaseOrderId}</strong></p>
+                <p><span class="info-label">Order Date:</span> ${orderDate}</p>
+                <p><span class="info-label">Customer Name:</span> ${customerName || "N/A"}</p>
+              </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="section">
+              <h2>Order Items</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHTML}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="section">
+              <div class="total-section">
+                <div class="total-row">
+                  <span>Subtotal:</span>
+                  <span>$${totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
+                </div>
+                <div class="total-row total-amount">
+                  <span>Order Total:</span>
+                  <span>$${totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
+                </div>
+              </div>
+            </div>
+
+            ${shippingInfo ? `
+            <div class="section">
+              <h2>Shipping Information</h2>
+              <div class="shipping-block">
+                <p><strong>${shippingInfo.name || "N/A"}</strong></p>
+                <p>${shippingInfo.address || ""}</p>
+                <p>${shippingInfo.city || ""} ${shippingInfo.postalCode || ""}</p>
+                <p>${shippingInfo.country || ""}</p>
+              </div>
+            </div>
+            ` : ""}
+
+            ${notes ? `
+            <div class="section">
+              <h2>Special Notes</h2>
+              <p style="background: #f8f9fa; padding: 15px; border-radius: 4px;">${notes}</p>
+            </div>
+            ` : ""}
+
+            <!-- Next Steps -->
+            <div class="section">
+              <h2>Next Steps</h2>
+              <p>Our team will review your purchase order and contact you shortly with confirmation and estimated delivery date.</p>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="section">
+              <h2>Need Help?</h2>
+              <p>
+                If you have any questions about your order, please contact us:
+                <br><br>
+                <strong>Email:</strong> <span class="contact-info">shilpa@novainternaionaldesigns.com</span><br>
+                <strong>Hours:</strong> Monday-Friday, 9AM-5PM EST
+              </p>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Nova International Designs. All rights reserved.</p>
+            <p>
+              <strong>Nova International Designs</strong><br>
+              Email: <span class="contact-info">shilpa@novainternaionaldesigns.com</span>
+            </p>
+            <p style="color: #999; margin-top: 15px;">
+              This is an automated email. Please do not reply directly to this message.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"Nova International Designs" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: `Purchase Order Received #${purchaseOrderId}`,
+      html: htmlContent,
+    });
+
+    console.log("Purchase order notification sent to customer:", email);
+    return true;
+  } catch (err) {
+    console.error("Failed to send purchase order notification:", err.message);
+    return false;
+  }
+};
+
+/**
+ * Send purchase order notification to admin/owner
+ * @param {string} email - Admin email
+ * @param {Object} orderData - Purchase order data
+ */
+export const sendPurchaseOrderToAdmin = async (email, orderData) => {
+  try {
+    const {
+      purchaseOrderId,
+      customerName,
+      email: customerEmail,
+      items = [],
+      totalAmount,
+      shippingInfo,
+      tel,
+      notes,
+      createdAt,
+    } = orderData;
+
+    // Format date
+    const orderDate = createdAt
+      ? new Date(createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+      : new Date().toLocaleDateString();
+
+    // Build items HTML
+    let itemsHTML = items
+      .map(
+        (item) =>
+          `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+          <strong>${item.styleNo || "N/A"}</strong> - ${item.description}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.color || "-"}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.size || "-"}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          ${item.qty}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">
+          $${item.price.toFixed(2)}
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">
+          $${(item.total || item.qty * item.price).toFixed(2)}
+        </td>
+      </tr>
+    `
+      )
+      .join("");
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+            background-color: #ffffff;
+            padding: 30px;
+            border-bottom: 2px solid #667eea;
+            text-align: center;
+          }
+          .header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 28px;
+          }
+          .header p {
+            color: #666;
+            margin: 5px 0 0 0;
+          }
+          .alert {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+          }
+          .content {
+            background-color: #ffffff;
+            padding: 30px;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            color: #667eea;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .order-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            margin-bottom: 15px;
+          }
+          .order-info p {
+            margin: 5px 0;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #667eea;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+          }
+          th {
+            background-color: #667eea;
+            color: white;
+            text-align: left;
+            padding: 12px;
+            font-weight: bold;
+          }
+          .total-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+          }
+          .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            border-top: 2px solid #667eea;
+            padding-top: 10px;
+          }
+          .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+          }
+          .contact-info {
+            color: #667eea;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🆕 New Purchase Order</h1>
+            <p>A new purchase order has been received</p>
+          </div>
+
+          <div class="content">
+            <div class="alert">
+              ⚠️ <strong>Action Required:</strong> Please review and confirm this purchase order
+            </div>
+
+            <!-- Customer Information -->
+            <div class="section">
+              <h2>Customer Information</h2>
+              <div class="order-info">
+                <p><span class="info-label">Name:</span> ${customerName || "N/A"}</p>
+                <p><span class="info-label">Email:</span> ${customerEmail || "N/A"}</p>
+                <p><span class="info-label">Phone:</span> ${tel || "N/A"}</p>
+                <p><span class="info-label">Purchase Order ID:</span> <strong>${purchaseOrderId}</strong></p>
+                <p><span class="info-label">Order Date:</span> ${orderDate}</p>
+              </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="section">
+              <h2>Order Items</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHTML}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="section">
+              <div class="total-section">
+                <div class="total-row">
+                  <span>Subtotal:</span>
+                  <span>$${totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
+                </div>
+                <div class="total-row total-amount">
+                  <span>Order Total:</span>
+                  <span>$${totalAmount ? totalAmount.toFixed(2) : "0.00"}</span>
+                </div>
+              </div>
+            </div>
+
+            ${shippingInfo ? `
+            <div class="section">
+              <h2>Shipping Address</h2>
+              <div class="order-info">
+                <p><strong>${shippingInfo.name || "N/A"}</strong></p>
+                <p>${shippingInfo.address || ""}</p>
+                <p>${shippingInfo.city || ""} ${shippingInfo.postalCode || ""}</p>
+                <p>${shippingInfo.country || ""}</p>
+              </div>
+            </div>
+            ` : ""}
+
+            ${notes ? `
+            <div class="section">
+              <h2>Special Notes</h2>
+              <p style="background: #f8f9fa; padding: 15px; border-radius: 4px;">${notes}</p>
+            </div>
+            ` : ""}
+          </div>
+
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Nova International Designs. All rights reserved.</p>
+            <p>This is an automated notification email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await transporter.sendMail({
+      from: `"Nova International Designs" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: `New Purchase Order Received #${purchaseOrderId}`,
+      html: htmlContent,
+    });
+
+    console.log("Purchase order notification sent to admin:", email);
+    return true;
+  } catch (err) {
+    console.error("Failed to send admin notification:", err.message);
+>>>>>>> 13080ad0b09c99c5d8ce31f07b1bef7040e0b411
     return false;
   }
 };
