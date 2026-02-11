@@ -43,13 +43,21 @@ router.post("/create-checkout-session", async (req, res) => {
       quantity: it.qty || 1,
     }));
 
-    const frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    // Determine frontend URL based on environment
+    let frontendUrl;
+    if (process.env.NODE_ENV === "production") {
+      frontendUrl = process.env.VITE_FRONTEND_URL_PRODUCTION || "https://calm-blini-7a30a5.netlify.app";
+    } else {
+      frontendUrl = process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    }
 
     // Ensure frontendUrl has a scheme (http/https)
     let cleanFrontendUrl = frontendUrl;
     if (!cleanFrontendUrl.startsWith("http://") && !cleanFrontendUrl.startsWith("https://")) {
       cleanFrontendUrl = `https://${frontendUrl}`;
     }
+
+    console.log(`[Stripe] Using frontend URL: ${cleanFrontendUrl} (NODE_ENV: ${process.env.NODE_ENV})`);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
