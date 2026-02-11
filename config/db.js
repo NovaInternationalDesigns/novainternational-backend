@@ -19,11 +19,11 @@ const connectDB = async () => {
       const userIdIndex = indexes.find(i => i.name === 'userId_1');
       if (userIdIndex) {
         await collection.dropIndex('userId_1');
-        console.log('✅ Dropped old userId_1 index from purchaseorderdrafts collection');
+        console.log('Dropped old userId_1 index from purchaseorderdrafts collection');
       }
     } catch (indexErr) {
       if (!indexErr.message.includes('index not found') && !indexErr.message.includes('does not exist')) {
-        console.warn('⚠️ Warning during index cleanup:', indexErr.message);
+        console.warn('Warning during index cleanup:', indexErr.message);
       }
     }
   } catch (err) {

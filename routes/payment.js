@@ -43,7 +43,7 @@ router.post("/create-checkout-session", async (req, res) => {
       quantity: it.qty || 1,
     }));
 
-    const frontendUrl = process.env.FRONTEND_URL;
+    const frontendUrl = process.env.VITE_FRONTEND_URL;
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

@@ -20,7 +20,7 @@ router.get("/my-orders", async (req, res) => {
     const orders = await PurchaseOrder.find({
       $or: [
         { ownerType: "User", ownerId: req.session.userId },
-        { userId: req.session.userId } // fallback to old schema
+        { userId: req.session.userId } // fixed: explicitly using req.session.userId
       ]
     })
       .sort({ createdAt: -1 })
@@ -51,15 +51,15 @@ router.get("/guest/:guestId", async (req, res) => {
     const orders = await PurchaseOrder.find({
       $or: [
         { ownerType: "Guest", ownerId: guestId },
-        { guestId } // fallback to old schema
+        { guestId: guestId } // fixed
       ]
     })
       .sort({ createdAt: -1 });
 
-    res.json({ 
+    res.json({
       guest: { _id: guest._id, name: guest.name, email: guest.email },
-      orders, 
-      count: orders.length 
+      orders,
+      count: orders.length
     });
   } catch (err) {
     console.error("Error fetching guest orders:", err);
@@ -85,15 +85,15 @@ router.get("/user/:userId", async (req, res) => {
     const orders = await PurchaseOrder.find({
       $or: [
         { ownerType: "User", ownerId: userId },
-        { userId } // fallback to old schema
+        { userId: userId } // fixed
       ]
     })
       .sort({ createdAt: -1 });
 
-    res.json({ 
+    res.json({
       user: { _id: user._id, name: user.name, email: user.email },
-      orders, 
-      count: orders.length 
+      orders,
+      count: orders.length
     });
   } catch (err) {
     console.error("Error fetching user orders:", err);
@@ -136,12 +136,11 @@ router.get("/search/:email", async (req, res) => {
     const allOrders = await PurchaseOrder.find({
       $or: [
         { email: { $regex: email, $options: "i" } }, // old user email
-        { guestEmail: { $regex: email, $options: "i" } }, // old guest email
-        // Note: new schema doesn't store customer email directly; it's inferred from User/Guest models
+        { guestEmail: { $regex: email, $options: "i" } } // old guest email
       ]
     }).sort({ createdAt: -1 });
 
-    res.json({ 
+    res.json({
       orders: allOrders,
       count: allOrders.length
     });

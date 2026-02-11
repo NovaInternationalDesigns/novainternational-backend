@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import User from "../../models/User.js";
-import { sendWelcomeEmail } from "../../utils/mailer.js"; 
+import { sendWelcomeEmail } from "../../utils/mailer.js";
 
 const router = express.Router();
 

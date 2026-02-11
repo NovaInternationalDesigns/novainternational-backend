@@ -2,8 +2,11 @@
 import express from "express";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
+import User from "../models/User.js";
+import Guest from "../models/Guest.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import { sendPurchaseOrderConfirmation } from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -42,7 +45,7 @@ router.post("/", async (req, res) => {
     let purchaseOrderId = incomingPOId;
     if (!purchaseOrderId) {
       // Convert ownerId to ObjectId for draft lookup
-      const ownerIdObj = mongoose.Types.ObjectId.isValid(finalOwnerId) 
+      const ownerIdObj = mongoose.Types.ObjectId.isValid(finalOwnerId)
         ? new mongoose.Types.ObjectId(finalOwnerId)
         : finalOwnerId;
       const draft = await PurchaseOrderDraft.findOne({ ownerType: finalOwnerType, ownerId: ownerIdObj });
@@ -78,11 +81,34 @@ router.post("/", async (req, res) => {
       if (Object.keys(cleaned.shippingInfo).length === 0) delete cleaned.shippingInfo;
     }
 
+    // Derive recipient email from cleaned input or from User/Guest record when missing
+    let recipientEmail = cleaned.email || email;
+    if (!recipientEmail) {
+      try {
+        if (finalOwnerType === "User") {
+          const userDoc = await User.findById(finalOwnerId).select("email name").lean();
+          if (userDoc && userDoc.email) {
+            recipientEmail = userDoc.email;
+            if (!cleaned.customerName && userDoc.name) cleaned.customerName = userDoc.name;
+          }
+        } else if (finalOwnerType === "Guest") {
+          const guestDoc = await Guest.findById(finalOwnerId).select("email name").lean();
+          if (guestDoc && guestDoc.email) {
+            recipientEmail = guestDoc.email;
+            if (!cleaned.customerName && guestDoc.name) cleaned.customerName = guestDoc.name;
+          }
+        }
+      } catch (err) {
+        console.warn("Email lookup error:", err.message);
+      }
+    }
+
     const orderData = {
       ...cleaned,
+      email: recipientEmail,
       purchaseOrderId,
       ownerType: finalOwnerType,
-      ownerId: mongoose.Types.ObjectId.isValid(finalOwnerId) 
+      ownerId: mongoose.Types.ObjectId.isValid(finalOwnerId)
         ? new mongoose.Types.ObjectId(finalOwnerId)
         : finalOwnerId,
     };
@@ -111,6 +137,25 @@ router.post("/", async (req, res) => {
 
     if (!order) {
       throw new Error("Failed to save order after multiple attempts");
+    }
+
+    // Send confirmation email if we have an email on the saved order
+    if (order.email) {
+      console.log("📧 Sending purchase order confirmation to:", order.email);
+      await sendPurchaseOrderConfirmation(order.email, {
+        purchaseOrderId: order.purchaseOrderId,
+        customerName: order.customerName,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        shippingInfo: order.shippingInfo,
+        notes: order.notes,
+        createdAt: order.createdAt,
+      }).catch((err) => {
+        // Log email error but don't fail the request
+        console.error("✗ Failed to send PO confirmation email:", err.message);
+      });
+    } else {
+      console.warn("⚠ No email available on order - skipping purchase order confirmation");
     }
 
     res.json({ message: "Order saved successfully", order });

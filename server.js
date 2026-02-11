@@ -17,6 +17,10 @@ import paymentRoutes from "./routes/payment.js";
 import webhookRoutes from "./routes/webhook.js";
 import guestRoutes from "./routes/guests.js";
 import ordersRoutes from "./routes/orders.js";
+import Stripe from "stripe";
+
+// stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Load environment variables based on NODE_ENV
 const env = process.env.NODE_ENV;
@@ -118,6 +122,23 @@ app.post("/api/auth/logout", (req, res) => {
 
     res.json({ message: "Logged out successfully" });
   });
+});
+
+// stripe test endpoint
+
+app.post('/create-payment-intent', async (req, res) => {
+  const { amount } = req.body;
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: 'usd',
+    });
+    res.status(200).send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Server

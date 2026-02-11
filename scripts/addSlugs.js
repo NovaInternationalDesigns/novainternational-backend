@@ -19,7 +19,7 @@ async function addSlugs() {
       }
     }
 
-    console.log("✅ All slugs added");
+    console.log("All slugs added");
     process.exit();
   } catch (err) {
     console.error(err);
