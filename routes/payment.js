@@ -12,9 +12,8 @@ console.log(
     : "NOT FOUND"
 );
 
-/**
- * CREATE STRIPE CHECKOUT SESSION
- * POST /api/create-checkout-session
+/** CREATE STRIPE CHECKOUT SESSION
+ * POST /api/payment/create-checkout-session
  */
 router.post("/create-checkout-session", async (req, res) => {
   try {

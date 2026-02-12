@@ -19,9 +19,9 @@ const transporter = nodemailer.createTransport({
 // Optional: Verify SMTP connection
 transporter.verify((err, success) => {
   if (success) {
-    console.log("✓ Email service connected - Gmail SMTP Ready");
+    console.log(" Email service connected - Gmail SMTP Ready");
   } else {
-    console.error("✗ Email service failed:", err ? err.message : "Unknown error");
+    console.error(" mail service failed:", err ? err.message : "Unknown error");
     console.error("  Check your Gmail credentials in .env file");
     console.error("  SMTP_USER:", process.env.SMTP_USER);
     console.error("  SMTP_PASS length:", process.env.SMTP_PASS ? process.env.SMTP_PASS.length : "NOT SET");
@@ -42,9 +42,9 @@ export const sendWelcomeEmail = async (email, name) => {
       html: `<p>Hello <strong>${name}</strong>, welcome to Nova International!</p>`, // email body
     });
 
-    console.log("✓ Email sent to", email);
+    console.log("Email sent to", email);
   } catch (err) {
-    console.error("⚠ Email sending failed:", err.message);
+    console.error("Email sending failed:", err.message);
   }
 };
 
@@ -525,7 +525,7 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
       html: htmlContent,
     });
 
-    console.log("✓ Payment confirmation email sent to", email);
+    console.log("Payment confirmation email sent to", email);
     return true;
   } catch (err) {
     console.error("Failed to send payment confirmation email:", err.message);

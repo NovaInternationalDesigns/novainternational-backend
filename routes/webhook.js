@@ -29,7 +29,7 @@ router.post(
       const session = event.data.object;
       const orderId = session.metadata.orderId;
 
-      console.log("📦 Webhook received - Checkout completed");
+      console.log(" Webhook received - Checkout completed");
       console.log("   Order ID:", orderId);
 
       try {
@@ -46,7 +46,7 @@ router.post(
 
           // 2️ Send payment confirmation email
           if (order.email) {
-            console.log("📧 Sending payment confirmation email to:", order.email);
+            console.log("Sending payment confirmation email to:", order.email);
             await sendPaymentConfirmationEmail(order.email, {
               purchaseOrderId: order.purchaseOrderId,
               customerName: order.customerName,
