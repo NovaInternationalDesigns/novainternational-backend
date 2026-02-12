@@ -4,7 +4,7 @@
     "productId": "T2-101",
     "price": 745.00,
     "description":"Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
-    "category": "Robots",
+    "category": "Electronics",
     "slug": "t2",
     "minQty": 1,
     "images": [
@@ -16,7 +16,7 @@
     "productId": "T2-101",
     "price": 745.00,
     "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
-    "category": "Robots",
+    "category": "Electronics",
     "slug": "kids-robot",
     "minQty": 1,
     "images": [
@@ -27,7 +27,7 @@
     "productId": "T2-101",
     "price": 745.00,
     "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
-    "category": "Robots",
+    "category": "Electronics",
     "slug": "technologically-advanced-robots",
     "minQty": 1,
     "images": [

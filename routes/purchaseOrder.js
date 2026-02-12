@@ -152,10 +152,10 @@ router.post("/", async (req, res) => {
         createdAt: order.createdAt,
       }).catch((err) => {
         // Log email error but don't fail the request
-        console.error("✗ Failed to send PO confirmation email:", err.message);
+        console.error("Failed to send PO confirmation email:", err.message);
       });
     } else {
-      console.warn("⚠ No email available on order - skipping purchase order confirmation");
+      console.warn("No email available on order - skipping purchase order confirmation");
     }
 
     res.json({ message: "Order saved successfully", order });
