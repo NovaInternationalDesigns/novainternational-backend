@@ -1,369 +1,415 @@
 [
   {
-    "name": "T2",
-    "price": 999.99,
+    "name": "T2 Robot",
+    "productId": "T2-101",
+    "price": 745.00,
+    "description":"Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Robots",
     "slug": "t2",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-by-Nova-International-designs-corporation_nlwiko.png"
     ]
   },
   {
     "name": "Kids Robot",
-    "price": 999.99,
+    "productId": "T2-101",
+    "price": 745.00,
+    "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Robots",
     "slug": "kids-robot",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
   },
   {
     "name": "Technologically Advanced Robots",
-    "price": 999.99,
+    "productId": "T2-101",
+    "price": 745.00,
+    "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Robots",
     "slug": "technologically-advanced-robots",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
   },
   {
     "name": "vacuum Sealing Machine",
-    "price": 79.99,
+    "productId": "NOVAVS-102",
+    "price": 125.00,
+    "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
     "category": "Electronics",
     "subcategory": "vacuum-sealing-machine",
     "slug": "vacuum-sealing-machine",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
     ]
   },
   {
     "name": "Zip Lock Vacuum Sealers",
-    "price": 79.99,
+    "productId": "NOVAVS-102",
+    "price": 125.00,
+    "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
     "category": "Electronics",
     "subcategory": "vacuum-sealing-machine",
     "slug": "zip-lock-vacuum-sealers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
     ]
   },
   {
     "name": "Kitchenware Vacuum Sealers",
-    "price": 79.99,
+    "productId": "NOVAVS-102",
+    "price": 125.00,
+    "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
     "category": "Electronics",
     "subcategory": "vacuum-sealing-machine",
     "slug": "kitchenware-vacuum-sealers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
     ]
   },
   {
     "name": "Technologically Advance Vacuum Sealers",
-    "price": 79.99,
+    "productId": "NOVAVS-102",
+    "price": 125.00,
+    "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
     "category": "Electronics",
     "subcategory": "vacuum-sealing-machine",
     "slug": "technologically-advance-vacuum-sealers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/vaccum-sealing-machine-by-Nova-International-Designs-Corporation_cqc6rj.png"
     ]
   },
   {
     "name": "Digital Photo Frame",
-    "price": 499.99,
+    "productId": "NOVADPF-105",
+    "price":  225.00,
+    "description":"Interactive Digital photo frame where you can upload \nYour good times and moments with loved ones",
     "category": "Electronics",
     "subcategory": "digital-photo-frame",
     "slug": "digital-photo-frame-2",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/digital-photoframe-2-by-Nova-International-designs-corporation_xj1d1g.png"
     ]
   },
   {
     "name": "Digital Photo Frame",
-    "price": 1299.99,
+    "productId": "NOVADPF-105",
+    "price": 225.00,
+    "description":"Interactive Digital photo frame where you can upload \nYour good times and moments with loved ones",
     "category": "Electronics",
     "subcategory": "digital-photo-frame",
     "slug": "digital-photo-frame",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/digital-photoframe-by-Nova-International-designs-corporation_ct2zvn.png"
     ]
   },
   {
     "name": "Campfire Light",
-    "price": 299.99,
+    "productId": "NOVACF-104",
+    "price": 150.00,
+    "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
     "category": "Electronics",
     "subcategory": "campfire-light",
     "slug": "campfire-light",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
     ]
   },
    {
     "name": "Bluetooth & Wireless Speakers",
-    "price": 299.99,
+    "productId": "NOVACF-104",
+    "price": 150.00,
+    "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
     "category": "Electronics",
     "subcategory": "campfire-light",
     "slug": "bluetooth-wireless-speakers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
     ]
   },
     {
     "name": "Campfire Bluetooth Speakers",
-    "price": 299.99,
+    "productId": "NOVACF-104",
+    "price": 150.00,
+    "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
     "category": "Electronics",
     "subcategory": "campfire-light",
     "slug": "campfire-bluetooth-speakers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
     ]
   },
    {
     "name": "Technologically Advanced Bluetooth Speakers",
-    "price": 299.99,
+    "productId": "NOVACF-104",
+    "price": 150.00,
+    "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
     "category": "Electronics",
     "subcategory": "campfire-light",
     "slug": " technologically-advanced-bluetooth-speakers",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
     ]
   },
   {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "magenta-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png"
       ]
   },
   {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "silver-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png"
       ]
   },
  {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "red-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png"
       ]
   },
       {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "golden-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png"
       ]
   },
       {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "gittery-gold-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png"
       ]
   },
       {
       "name": "Clutch",
-      "price": 299.99,
+      "price": 199.99,
       "category": "Accessories",
       "subcategory": "clutch",
       "slug": "black-clutch",
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png"
       ]
   },
   {
       "name": "Jute Bag",
-      "price": 299.99,
+      "price": 199.99,
       "category": "jute-bag",
       "subcategory": "jute-bag",
       "slug": "jute-bag",
       "colors": ["White", "Brown", "Blue"],
       "sizes": ["S", "M", "L"],
-      "minQty": 500,
+      "minQty": 1,
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1765384313/jute_Bag-NovaInternationalDesigns_tgz0yh.png"
       ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "white-dress-s",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-S-NovaInternationalDesigns_mh8qvs.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "white-dress-m",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-M-NovaInternationalDesigns_zxoh15.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "white-dress-l",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/whiteDress-L-NovaInternationalDesigns_vhiciz.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "brown-dress-s",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/BrownDress-S-NovaInternationalDesigns_mdwwwb.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "brown-dress-m",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/BrownDress-M-NovaInternationalDesigns_cfvsgc.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "brown-dress-l",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BrownDress-L-NovaInternationalDesigns_rxv0bs.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "blue-dress-s",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-S-NovaInternationalDesigns_o3dgls.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "blue-dress-m",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-M-NovaInternationalDesigns_wde5n8.jpg"
     ]
   },
   {
     "name": "Dress",
-    "price": 999.99,
+    "price": 99.99,
     "category": "Fashion",
     "subcategory": "women",
     "slug": "blue-dress-l",
     "colors": ["White", "Brown", "Blue"],
     "sizes": ["S", "M", "L"],
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-L-NovaInternationalDesigns_s9x5q7.jpg"
     ]
   },
   {
     "name": "Bladeless Fan",
-    "price": 999.99,
+    "productId": "NOVAFN-106",
+    "price": 1500.00,
+    "description":"Modern designs with light and Musical effects\nNo Blades",
     "category": "Electronics",
     "subcategory": "bladeless-fan",
     "slug": "bladeless-fan",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
     ]
   },
   {
     "name": "Technologically Advanced Fans",
-    "price": 999.99,
+    "productId": "NOVAFN-106",
+    "price": 1500.00,
+    "description":"Modern designs with light and Musical effects\nNo Blades",
     "category": "Electronics",
     "subcategory": "bladeless-fan",
     "slug": "technologically-advanced-fans",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
     ]
   },
 {
     "name": "Musical Fans",
-    "price": 999.99,
+    "productId": "NOVAFN-106",
+    "price": 1500.00,
+    "description":"Modern designs with light and Musical effects\nNo Blades",
     "category": "Electronics",
     "subcategory": "bladeless-fan",
     "slug": "musical-fans",
-    "minQty": 500,
+    "minQty": 1,
     "images": [
       "https://res.cloudinary.com/djgz1kays/image/upload/v1765994752/bladeless-fan-by-Nova-International-designs-corporation_y9pozl.png"
+    ]
+  },
+
+  {
+    "name": "Baby Monitor - NOVABM-103",
+    "productId": "NOVABM-103",
+    "price": 145.00,
+    "description":"Highly Safe and secure for your little ones for monitoring your little ones at any moment to ensure their Safety \nEvery Cry and Needs of your baby  will not go unnoticed \nGood Connectivity and Creatively Designed for your loved ones and their precious moments",
+    "category": "Electronics",
+    "subcategory": "baby-monitor",
+    "slug": "baby-monitor",
+    "minQty": 1,
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1770925714/Baby-monitor-pink_kvkpev.jpg"
     ]
   }
 ]

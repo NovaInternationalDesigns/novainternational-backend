@@ -221,7 +221,7 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>✓ Purchase Order Received</h1>
+            <h1>Purchase Order Received</h1>
             <p>Thank you for your order with Nova International Designs</p>
           </div>
 
@@ -321,7 +321,7 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
       html: htmlContent,
     });
 
-    console.log("✓ Purchase order confirmation email sent to", email);
+    console.log("Purchase order confirmation email sent to", email);
     return true;
   } catch (err) {
     console.error("Failed to send purchase order email:", err.message);
@@ -453,14 +453,14 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>✓ Payment Confirmed</h1>
+            <h1>Payment Confirmed</h1>
             <p>Your payment has been successfully processed</p>
           </div>
 
           <div class="content">
             <!-- Success Message -->
             <div class="success-box">
-              <p>🎉 Thank you for your purchase! Your payment has been received and confirmed.</p>
+              <p>Thank you for your purchase! Your payment has been received and confirmed.</p>
             </div>
 
             <!-- Order Summary -->
