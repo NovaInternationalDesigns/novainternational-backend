@@ -1,7 +1,7 @@
 [
   {
-    "name": "T2 Robot",
-    "productId": "T2-101",
+    "name": "T2 Robot - NOVAT2-101",
+    "productId": "NOVAT2-101",
     "price": 745.00,
     "description":"Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Electronics",
@@ -12,8 +12,8 @@
     ]
   },
   {
-    "name": "Kids Robot",
-    "productId": "T2-101",
+    "name": "Kids Robot - NOVAT2-101",
+    "productId": "NOVAT2-101",
     "price": 745.00,
     "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Electronics",
@@ -23,8 +23,8 @@
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
   },
   {
-    "name": "Technologically Advanced Robots",
-    "productId": "T2-101",
+    "name": "Technologically Advanced Robots - NOVAT2-101",
+    "productId": "NOVAT2-101",
     "price": 745.00,
     "description": "Educational Robot for kids with customized apps for educational learning for kids\nHelpful with Stem Education and Voice Commands and has parental control for kids \nAvailable for Shipping anywhere in USA",
     "category": "Electronics",
@@ -34,7 +34,7 @@
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/T2-2-by-Nova-International-designs-corporation_rdi86f.png"    ]
   },
   {
-    "name": "vacuum Sealing Machine",
+    "name": "Vacuum Sealing Machine - NOVAVS-102",
     "productId": "NOVAVS-102",
     "price": 125.00,
     "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
@@ -47,7 +47,7 @@
     ]
   },
   {
-    "name": "Zip Lock Vacuum Sealers",
+    "name": "Zip Lock Vacuum Sealers - NOVAVS-102",
     "productId": "NOVAVS-102",
     "price": 125.00,
     "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "name": "Kitchenware Vacuum Sealers",
+    "name": "Kitchenware Vacuum Sealers - NOVAVS-102",
     "productId": "NOVAVS-102",
     "price": 125.00,
     "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
@@ -73,7 +73,7 @@
     ]
   },
   {
-    "name": "Technologically Advance Vacuum Sealers",
+    "name": "Technologically Advance Vacuum Sealers - NOVAVS-102",
     "productId": "NOVAVS-102",
     "price": 125.00,
     "description": "Vacuum sealing mechanism for plastic bags and has very Efficient and high quality sealing mechanism \nKeep any kind of food healthy, nutritious and safer to eat for you and  your family",
@@ -86,7 +86,7 @@
     ]
   },
   {
-    "name": "Digital Photo Frame",
+    "name": "Digital Photo Frame - NOVADPF-105 ",
     "productId": "NOVADPF-105",
     "price":  225.00,
     "description":"Interactive Digital photo frame where you can upload \nYour good times and moments with loved ones",
@@ -99,7 +99,7 @@
     ]
   },
   {
-    "name": "Digital Photo Frame",
+    "name": "Digital Photo Frame - NOVADPF-105",
     "productId": "NOVADPF-105",
     "price": 225.00,
     "description":"Interactive Digital photo frame where you can upload \nYour good times and moments with loved ones",
@@ -112,7 +112,7 @@
     ]
   },
   {
-    "name": "Campfire Light",
+    "name": "Campfire Light - NOVACF-104",
     "productId": "NOVACF-104",
     "price": 150.00,
     "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
@@ -125,7 +125,7 @@
     ]
   },
    {
-    "name": "Bluetooth & Wireless Speakers",
+    "name": "Bluetooth & Wireless Speakers - NOVACF-104",
     "productId": "NOVACF-104",
     "price": 150.00,
     "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
@@ -138,7 +138,7 @@
     ]
   },
     {
-    "name": "Campfire Bluetooth Speakers",
+    "name": "Campfire Bluetooth Speakers - NOVACF-104",
     "productId": "NOVACF-104",
     "price": 150.00,
     "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
@@ -151,7 +151,7 @@
     ]
   },
    {
-    "name": "Technologically Advanced Bluetooth Speakers",
+    "name": "Technologically Advanced Bluetooth Speakers - NOVACF-104",
     "productId": "NOVACF-104",
     "price": 150.00,
     "description":" High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
@@ -360,7 +360,7 @@
     ]
   },
   {
-    "name": "Bladeless Fan",
+    "name": "Bladeless Fan - NOVAFN-106",
     "productId": "NOVAFN-106",
     "price": 1500.00,
     "description":"Modern designs with light and Musical effects\nNo Blades",
@@ -373,7 +373,7 @@
     ]
   },
   {
-    "name": "Technologically Advanced Fans",
+    "name": "Technologically Advanced Fans - NOVAFN-106",
     "productId": "NOVAFN-106",
     "price": 1500.00,
     "description":"Modern designs with light and Musical effects\nNo Blades",
@@ -386,7 +386,7 @@
     ]
   },
 {
-    "name": "Musical Fans",
+    "name": "Musical Fans - NOVAFN-106",
     "productId": "NOVAFN-106",
     "price": 1500.00,
     "description":"Modern designs with light and Musical effects\nNo Blades",
