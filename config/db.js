@@ -9,12 +9,11 @@ const connectDB = async () => {
     try {
       const db = mongoose.connection.db;
       const collection = db.collection('purchaseorderdrafts');
-      
+
       // Use listIndexes() to get indexes
       const indexCursor = collection.listIndexes();
       const indexes = await indexCursor.toArray();
-      console.log('Current indexes:', indexes.map(i => i.name));
-      
+
       // Find and drop userId_1 index
       const userIdIndex = indexes.find(i => i.name === 'userId_1');
       if (userIdIndex) {

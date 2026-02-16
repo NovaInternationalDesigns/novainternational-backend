@@ -7,6 +7,7 @@ const draftItemSchema = new mongoose.Schema({
   qty: Number,
   color: { type: String, default: null },
   size: { type: String, default: null },
+  image: { type: String, default: null }, // Thumbnail image URL
 });
 
 const purchaseOrderDraftSchema = new mongoose.Schema({

@@ -1,5 +1,6 @@
 import express from "express";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
+import Product from "../models/Product.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
 
@@ -73,12 +74,26 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
       qty: i.qty,
       color: i.color,
       size: i.size,
+      image: i.image,
     }))];
 
-    items.forEach((item) => {
+    // Fetch product images for new/updated items
+    for (const item of items) {
       const idx = merged.findIndex(
         (i) => i.productId === item.productId && i.color === item.color && i.size === item.size
       );
+      
+      let image = item.image; // Use provided image if available
+      if (!image) {
+        // Fetch product to get first image
+        try {
+          const product = await Product.findById(item.productId);
+          image = product?.images?.[0] || null;
+        } catch (e) {
+          console.error("Error fetching product image:", e);
+        }
+      }
+      
       if (idx > -1) {
         merged[idx].qty = (Number(merged[idx].qty) || 0) + (Number(item.quantity) || 0);
       } else {
@@ -89,9 +104,10 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
           qty: Number(item.quantity) || 0,
           color: item.color || null,
           size: item.size || null,
+          image: image,
         });
       }
-    });
+    }
 
     const updated = await PurchaseOrderDraft.findOneAndUpdate(
       { ownerType, ownerId: ownerIdObj },

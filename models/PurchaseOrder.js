@@ -8,7 +8,8 @@ const itemSchema = new mongoose.Schema({
   size: { type: String, default: "" },
   qty: { type: Number, default: 1 },
   price: { type: Number, default: 0 },
-  total: { type: Number, default: 0 }, // qty * price
+  total: { type: Number, default: 0 }, 
+  images: { type: [String], default: [] },
 });
 
 // Main Purchase Order Schema
