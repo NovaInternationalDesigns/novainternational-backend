@@ -20,7 +20,19 @@ const ProductSchema = new mongoose.Schema(
     sizes: [String],
     minQty: Number,
     images: [String],
-    description: String
+    description: String,
+    // Professional variant system
+    variants: [
+      {
+        color: { type: String },
+        size: { type: String },
+        image: { type: String },
+        price: { type: Number },
+        sku: { type: String },
+        stock: { type: Number, default: 0 },
+        active: { type: Boolean, default: true }
+      }
+    ]
   },
   { timestamps: true }
 );

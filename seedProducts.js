@@ -1,5 +1,229 @@
+export default 
 [
+   {
+    "name": "White Dress",
+    "price": 99.99,
+    "category": "Fashion",
+    "subcategory": "women",
+    "slug": "white-dress",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-S-NovaInternationalDesigns_mh8qvs.jpg"
+    ],
+    "description": "Classic women's dress available in multiple sizes and colors.",
+    "minQty": 1,
+    "variants": [
+      {
+        "color": "White",
+        "size": "S",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-S-NovaInternationalDesigns_mh8qvs.jpg"
+      },
+      {
+        "color": "White",
+        "size": "M",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-M-NovaInternationalDesigns_zxoh15.jpg"
+      },
+      {
+        "color": "White",
+        "size": "L",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/whiteDress-L-NovaInternationalDesigns_vhiciz.jpg"
+      }
+    ]
+  },
   {
+    "name": "Brown Dress",
+    "price": 99.99,
+    "category": "Fashion",
+    "subcategory": "women",
+    "slug": "brown-dress",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/BrownDress-S-NovaInternationalDesigns_mdwwwb.jpg"
+    ],
+    "description": "Classic women's dress available in multiple sizes and colors.",
+    "minQty": 1,
+    "variants": [
+      {
+        "color": "Brown",
+        "size": "S",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/BrownDress-S-NovaInternationalDesigns_mdwwwb.jpg"
+      },
+      {
+        "color": "Brown",
+        "size": "M",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/BrownDress-M-NovaInternationalDesigns_cfvsgc.jpg"
+      },
+      {
+        "color": "Brown",
+        "size": "L",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BrownDress-L-NovaInternationalDesigns_rxv0bs.jpg"
+      }
+    ]
+  },
+  {
+    "name": "Blue Dress",
+    "price": 99.99,
+    "category": "Fashion",
+    "subcategory": "women",
+    "slug": "blue-dress",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-S-NovaInternationalDesigns_o3dgls.jpg"
+    ],
+    "description": "Classic women's dress available in multiple sizes and colors.",
+    "minQty": 1,
+    "variants": [
+      {
+        "color": "Blue",
+        "size": "S",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-S-NovaInternationalDesigns_o3dgls.jpg"
+      },
+      {
+        "color": "Blue",
+        "size": "M",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-M-NovaInternationalDesigns_wde5n8.jpg"
+      },
+      {
+        "color": "Blue",
+        "size": "L",
+        "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-L-NovaInternationalDesigns_s9x5q7.jpg"
+      }
+    ]
+  },
+
+ {
+    "name": "Clutch - Magenta",
+    "price": 199.99,
+    "slug": "clutch-magenta",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png"
+    ],
+    "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+  {
+    "name": "Clutch - Silver",
+    "price": 199.99,
+    "slug": "clutch-silver",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png"
+    ],
+      "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+  {
+    "name": "Clutch - Red",
+    "price": 199.99,
+    "slug": "clutch-red",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png"
+    ],
+   "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+  {
+    "name": "Clutch - Golden",
+    "price": 199.99,
+    "slug": "clutch-golden",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png"
+    ],
+   "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+  {
+    "name": "Clutch - Glittery Gold",
+    "price": 199.99,
+    "slug": "clutch-glittery-gold",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png"
+    ],
+   "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+  {
+    "name": "Clutch - Black",
+    "price": 199.99,
+    "slug": "clutch-black",
+    "category": "Accessories",
+    "subcategory": "clutch",
+    "minQty": 1,
+    "description": "Elegant evening clutch available in multiple colors.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png"
+    ],
+  "variants": [
+      { "color": "Magenta", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png" },
+      { "color": "Silver", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png" },
+      { "color": "Red", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png" },
+      { "color": "Golden", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png" },
+      { "color": "Glittery Gold", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png" },
+      { "color": "Black", "image": "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png" }
+    ]
+  },
+
+  {
+    "name": "Jute Bag",
+    "price": 199.99,
+    "category": "Accessories",
+    "subcategory": "jute-bag",
+    "slug": "jute-bag",
+    "sizes": ["S", "M", "L"],
+    "minQty": 1,
+    "description": "Jute bag available in multiple sizes.",
+    "images": [
+      "https://res.cloudinary.com/djgz1kays/image/upload/v1765384313/jute_Bag-NovaInternationalDesigns_tgz0yh.png"
+    ]
+  },
+
+ {
     "name": "T2 Robot - NOVAT2-101",
     "productId": "NOVAT2-101",
     "price": 745.00,
@@ -163,203 +387,7 @@
       "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/campfire-light-by-Nova-International-designs-corporation_pewbmr.png"
     ]
   },
-  {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "magenta-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/magenta-clutch-by-Nova-International-designs-corporation_felron.png"
-      ]
-  },
-  {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "silver-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1764974491/silver-clutch-by-Nova-International-designs-corporation_fjuitv.png"
-      ]
-  },
- {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "red-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/red-clutch-by-Nova-International-designs-corporation_dsmva3.png"
-      ]
-  },
-      {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "golden-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/golden-clutch-by-Nova-International-designs-corporation_lqmo2l.png"
-      ]
-  },
-      {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "gittery-gold-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1764974490/gittery-gold-clutch-by-Nova-International-designs-corporation_j34sbb.png"
-      ]
-  },
-      {
-      "name": "Clutch",
-      "price": 199.99,
-      "category": "Accessories",
-      "subcategory": "clutch",
-      "slug": "black-clutch",
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1765384958/black-clutch-by-Nova-International-designs-corporation_b64mbs.png"
-      ]
-  },
-  {
-      "name": "Jute Bag",
-      "price": 199.99,
-      "category": "jute-bag",
-      "subcategory": "jute-bag",
-      "slug": "jute-bag",
-      "colors": ["White", "Brown", "Blue"],
-      "sizes": ["S", "M", "L"],
-      "minQty": 1,
-      "images": [
-        "https://res.cloudinary.com/djgz1kays/image/upload/v1765384313/jute_Bag-NovaInternationalDesigns_tgz0yh.png"
-      ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "white-dress-s",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-S-NovaInternationalDesigns_mh8qvs.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "white-dress-m",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/whiteDress-M-NovaInternationalDesigns_zxoh15.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "white-dress-l",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/whiteDress-L-NovaInternationalDesigns_vhiciz.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "brown-dress-s",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383123/BrownDress-S-NovaInternationalDesigns_mdwwwb.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "brown-dress-m",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383124/BrownDress-M-NovaInternationalDesigns_cfvsgc.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "brown-dress-l",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BrownDress-L-NovaInternationalDesigns_rxv0bs.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "blue-dress-s",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-S-NovaInternationalDesigns_o3dgls.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "blue-dress-m",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-M-NovaInternationalDesigns_wde5n8.jpg"
-    ]
-  },
-  {
-    "name": "Dress",
-    "price": 99.99,
-    "category": "Fashion",
-    "subcategory": "women",
-    "slug": "blue-dress-l",
-    "colors": ["White", "Brown", "Blue"],
-    "sizes": ["S", "M", "L"],
-    "minQty": 1,
-    "images": [
-      "https://res.cloudinary.com/djgz1kays/image/upload/v1765383122/BlueDress-L-NovaInternationalDesigns_s9x5q7.jpg"
-    ]
-  },
-  {
+   {
     "name": "Bladeless Fan - NOVAFN-106",
     "productId": "NOVAFN-106",
     "price": 1500.00,
@@ -412,4 +440,5 @@
       "https://res.cloudinary.com/djgz1kays/image/upload/v1770925714/Baby-monitor-pink_kvkpev.jpg"
     ]
   }
-]
+
+];
