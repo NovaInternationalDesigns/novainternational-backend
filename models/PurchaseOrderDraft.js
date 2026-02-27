@@ -5,6 +5,7 @@ const draftItemSchema = new mongoose.Schema({
   name: String,
   price: Number,
   qty: Number,
+  image: { type: String, default: null },
   color: { type: String, default: null },
   size: { type: String, default: null },
 });

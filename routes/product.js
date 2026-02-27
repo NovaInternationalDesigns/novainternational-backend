@@ -46,7 +46,12 @@ router.get("/id/:id", async (req, res) => {
  */
 router.get("/slug/:slug", async (req, res) => {
   try {
-    const product = await Product.findOne({ slug: req.params.slug });
+    // Trim incoming slug and match ignoring surrounding whitespace in DB
+    const rawSlug = String(req.params.slug || "").trim();
+    // Escape regex special chars
+    const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const slugRegex = new RegExp(`^\\s*${esc(rawSlug)}\\s*$`, "i");
+    const product = await Product.findOne({ slug: { $regex: slugRegex } });
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }

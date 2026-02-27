@@ -532,3 +532,43 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
     return false;
   }
 };
+
+/**
+ * Send admin notification when a paid purchase order is created
+ * @param {Object} orderData - Saved purchase order data
+ */
+export const sendAdminOrderNotification = async (orderData) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+    if (!adminEmail) {
+      console.warn("ADMIN_EMAIL/SMTP_USER is not configured; skipping admin order notification.");
+      return false;
+    }
+
+    const orderId = orderData.purchaseOrderId || "N/A";
+    const customerName = orderData.customerName || orderData.shippingInfo?.name || "N/A";
+    const customerEmail = orderData.email || "N/A";
+    const total = Number(orderData.totalAmount || 0).toFixed(2);
+    const itemCount = Array.isArray(orderData.items) ? orderData.items.length : 0;
+
+    await transporter.sendMail({
+      from: `"Nova International Designs" <${process.env.SMTP_USER}>`,
+      to: adminEmail,
+      subject: `New Paid B2B Order - ${orderId}`,
+      html: `
+        <h3>New paid B2B order received</h3>
+        <p><strong>Purchase Order ID:</strong> ${orderId}</p>
+        <p><strong>Customer Name:</strong> ${customerName}</p>
+        <p><strong>Customer Email:</strong> ${customerEmail}</p>
+        <p><strong>Items:</strong> ${itemCount}</p>
+        <p><strong>Total:</strong> $${total}</p>
+      `,
+    });
+
+    console.log("Admin order notification email sent to", adminEmail);
+    return true;
+  } catch (err) {
+    console.error("Failed to send admin order notification:", err.message);
+    return false;
+  }
+};

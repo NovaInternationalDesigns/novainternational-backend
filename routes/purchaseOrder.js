@@ -1,30 +1,38 @@
 // purchaseorder.js
 import express from "express";
+import crypto from "crypto";
+import mongoose from "mongoose";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
 import User from "../models/User.js";
 import Guest from "../models/Guest.js";
-import crypto from "crypto";
-import mongoose from "mongoose";
-import { sendPurchaseOrderConfirmation } from "../utils/mailer.js";
 
 const router = express.Router();
 
+// Create new purchase order
 router.post("/", async (req, res) => {
   try {
-    const { email, userId, guestId, purchaseOrderId: incomingPOId, ownerType, ownerId } = req.body;
+    const {
+      email,
+      userId,
+      guestId,
+      purchaseOrderId: incomingPOId,
+      ownerType,
+      ownerId,
+    } = req.body;
 
-    if (email) {
+    // Validate email if provided
+    let recipientEmail = email;
+    if (recipientEmail) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(String(email).toLowerCase())) {
+      if (!emailRegex.test(String(recipientEmail).toLowerCase())) {
         return res.status(400).json({ error: "Invalid email format" });
       }
     }
 
-    // Determine ownerType and ownerId from body or fallback to legacy fields
+    // Determine final owner type & ID
     let finalOwnerType = ownerType;
     let finalOwnerId = ownerId;
-
     if (!finalOwnerType || !finalOwnerId) {
       if (userId) {
         finalOwnerType = "User";
@@ -41,19 +49,21 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
     }
 
-    // ensure purchaseOrderId is set (prefer incoming, then draft, then generate)
+    // Determine purchaseOrderId
     let purchaseOrderId = incomingPOId;
     if (!purchaseOrderId) {
-      // Convert ownerId to ObjectId for draft lookup
       const ownerIdObj = mongoose.Types.ObjectId.isValid(finalOwnerId)
         ? new mongoose.Types.ObjectId(finalOwnerId)
         : finalOwnerId;
-      const draft = await PurchaseOrderDraft.findOne({ ownerType: finalOwnerType, ownerId: ownerIdObj });
+      const draft = await PurchaseOrderDraft.findOne({
+        ownerType: finalOwnerType,
+        ownerId: ownerIdObj,
+      });
       if (draft && draft.purchaseOrderId) purchaseOrderId = draft.purchaseOrderId;
     }
     if (!purchaseOrderId) purchaseOrderId = crypto.randomBytes(16).toString("hex");
 
-    // Remove empty-string top-level fields to avoid storing blank keys
+    // Clean empty-string top-level fields
     const cleaned = {};
     Object.keys(req.body || {}).forEach((k) => {
       const v = req.body[k];
@@ -62,27 +72,19 @@ router.post("/", async (req, res) => {
       cleaned[k] = v;
     });
 
-    // remove empty strings inside nested objects like form and shippingInfo
-    if (cleaned.form && typeof cleaned.form === "object") {
-      Object.keys(cleaned.form).forEach((k) => {
-        if (typeof cleaned.form[k] === "string" && cleaned.form[k].trim() === "") {
-          delete cleaned.form[k];
-        }
-      });
-      // if form becomes empty, remove it
-      if (Object.keys(cleaned.form).length === 0) delete cleaned.form;
-    }
-    if (cleaned.shippingInfo && typeof cleaned.shippingInfo === "object") {
-      Object.keys(cleaned.shippingInfo).forEach((k) => {
-        if (typeof cleaned.shippingInfo[k] === "string" && cleaned.shippingInfo[k].trim() === "") {
-          delete cleaned.shippingInfo[k];
-        }
-      });
-      if (Object.keys(cleaned.shippingInfo).length === 0) delete cleaned.shippingInfo;
-    }
+    // Remove empty strings inside nested objects like form & shippingInfo
+    ["form", "shippingInfo"].forEach((field) => {
+      if (cleaned[field] && typeof cleaned[field] === "object") {
+        Object.keys(cleaned[field]).forEach((k) => {
+          if (typeof cleaned[field][k] === "string" && cleaned[field][k].trim() === "") {
+            delete cleaned[field][k];
+          }
+        });
+        if (Object.keys(cleaned[field]).length === 0) delete cleaned[field];
+      }
+    });
 
-    // Derive recipient email from cleaned input or from User/Guest record when missing
-    let recipientEmail = cleaned.email || email;
+    // Lookup email from User or Guest if not provided
     if (!recipientEmail) {
       try {
         if (finalOwnerType === "User") {
@@ -111,9 +113,10 @@ router.post("/", async (req, res) => {
       ownerId: mongoose.Types.ObjectId.isValid(finalOwnerId)
         ? new mongoose.Types.ObjectId(finalOwnerId)
         : finalOwnerId,
+      paymentStatus: "pending", // Important: mark as pending initially
     };
 
-    // Try saving; if purchaseOrderId unique constraint conflicts, regenerate and retry a few times
+    // Save order with retry logic for unique purchaseOrderId
     let order = null;
     const maxRetries = 5;
     let attempt = 0;
@@ -121,43 +124,21 @@ router.post("/", async (req, res) => {
       try {
         order = new PurchaseOrder({ ...orderData });
         await order.save();
-        break; // success
+        break;
       } catch (e) {
-        // Duplicate key on purchaseOrderId -> generate new id and retry
-        if (e && e.code === 11000 && e.keyPattern && e.keyPattern.purchaseOrderId) {
-          attempt += 1;
+        if (e.code === 11000 && e.keyPattern && e.keyPattern.purchaseOrderId) {
+          attempt++;
           purchaseOrderId = crypto.randomBytes(16).toString("hex");
           orderData.purchaseOrderId = purchaseOrderId;
           continue;
         }
-        // other errors -> rethrow
         throw e;
       }
     }
 
-    if (!order) {
-      throw new Error("Failed to save order after multiple attempts");
-    }
+    if (!order) throw new Error("Failed to save order after multiple attempts");
 
-    // Send confirmation email if we have an email on the saved order
-    if (order.email) {
-      console.log("Sending purchase order confirmation to:", order.email);
-      await sendPurchaseOrderConfirmation(order.email, {
-        purchaseOrderId: order.purchaseOrderId,
-        customerName: order.customerName,
-        items: order.items,
-        totalAmount: order.totalAmount,
-        shippingInfo: order.shippingInfo,
-        notes: order.notes,
-        createdAt: order.createdAt,
-      }).catch((err) => {
-        // Log email error but don't fail the request
-        console.error("Failed to send PO confirmation email:", err.message);
-      });
-    } else {
-      console.warn("No email available on order - skipping purchase order confirmation");
-    }
-
+    // ✅ DO NOT send email here — will send after Stripe payment
     res.json({ message: "Order saved successfully", order });
   } catch (error) {
     console.error("PurchaseOrder save error:", error);

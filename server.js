@@ -38,6 +38,10 @@ const app = express();
 // Connect to database
 connectDB();
 
+// Stripe webhook route must be registered before express.json()
+// so raw body signature verification works.
+app.use("/api/webhook", webhookRoutes);
+
 // Middleware
 app.use(express.json());
 
@@ -56,7 +60,7 @@ app.use(
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -87,8 +91,7 @@ app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/orders", ordersRoutes);
 
-// Payment and Webhook Routes
-app.use("/api/webhook", webhookRoutes);
+// Payment Routes
 app.use("/api/payment", paymentRoutes);
 
 // Add signup route
