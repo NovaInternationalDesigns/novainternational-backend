@@ -17,32 +17,25 @@ import paymentRoutes from "./routes/payment.js";
 import webhookRoutes from "./routes/webhook.js";
 import guestRoutes from "./routes/guests.js";
 import ordersRoutes from "./routes/orders.js";
-import Stripe from "stripe";
 
-// stripe
+// Stripe
+import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Load environment variables based on NODE_ENV
+// Load env variables
+dotenv.config();
 const env = process.env.NODE_ENV;
 
-if (env === "production") {
-  dotenv.config({ path: ".env.production" });
-} else if (env === "test") {
-  dotenv.config({ path: ".env.test" });
-} else {
-  dotenv.config(); // defaults to .env
-}
+// Connect to MongoDB
+connectDB();
 
 const app = express();
 
-// Connect to database
-connectDB();
-
-// Stripe webhook route must be registered before express.json()
-// so raw body signature verification works.
+// --- Stripe webhook route ---
+// Must come BEFORE express.json() for raw body
 app.use("/api/webhook", webhookRoutes);
 
-// Middleware
+// --- Middleware ---
 app.use(express.json());
 
 // CORS
@@ -82,7 +75,7 @@ app.use(
   })
 );
 
-// Routes
+// --- API Routes ---
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
@@ -90,32 +83,21 @@ app.use("/api/purchase-order", purchaseOrderRoute);
 app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/orders", ordersRoutes);
-
-// Payment Routes
 app.use("/api/payment", paymentRoutes);
-
-// Add signup route
 app.use("/api/signup", signupRouter);
 
-// Health check
+// --- Health check ---
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    mongoState: mongoose.connection.readyState,
-  });
+  res.json({ status: "ok", mongoState: mongoose.connection.readyState });
 });
 
-// Root
-app.get("/", (req, res) => {
-  res.send("Backend is running...");
-});
+// --- Root ---
+app.get("/", (req, res) => res.send("Backend is running..."));
 
-// Logout
+// --- Logout ---
 app.post("/api/auth/logout", (req, res) => {
   req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: "Logout failed" });
-    }
+    if (err) return res.status(500).json({ message: "Logout failed" });
 
     res.clearCookie("nova.sid", {
       httpOnly: true,
@@ -127,25 +109,20 @@ app.post("/api/auth/logout", (req, res) => {
   });
 });
 
-// stripe test endpoint
-
-app.post('/create-payment-intent', async (req, res) => {
+// --- Stripe test endpoint ---
+app.post("/create-payment-intent", async (req, res) => {
   const { amount } = req.body;
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: 'usd',
+      amount,
+      currency: "usd",
     });
-    res.status(200).send({
-      clientSecret: paymentIntent.client_secret,
-    });
+    res.status(200).send({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Server
+// --- Start server ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

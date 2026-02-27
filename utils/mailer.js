@@ -55,6 +55,8 @@ export const sendWelcomeEmail = async (email, name) => {
  */
 export const sendPurchaseOrderConfirmation = async (email, orderData) => {
   try {
+    console.log('[Email] Attempting to send purchase order confirmation to:', email);
+    console.log('[Email] SMTP_USER:', process.env.SMTP_USER);
     const {
       purchaseOrderId,
       customerName,
@@ -320,7 +322,6 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
       subject: `Purchase Order Confirmation - Order #${purchaseOrderId}`,
       html: htmlContent,
     });
-
     console.log("Purchase order confirmation email sent to", email);
     return true;
   } catch (err) {
@@ -336,6 +337,8 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
  */
 export const sendPaymentConfirmationEmail = async (email, paymentData) => {
   try {
+    console.log('[Email] Attempting to send payment confirmation to:', email);
+    console.log('[Email] SMTP_USER:', process.env.SMTP_USER);
     const {
       purchaseOrderId,
       customerName,
@@ -524,7 +527,6 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
       subject: `Payment Confirmation - Order #${purchaseOrderId}`,
       html: htmlContent,
     });
-
     console.log("Payment confirmation email sent to", email);
     return true;
   } catch (err) {
