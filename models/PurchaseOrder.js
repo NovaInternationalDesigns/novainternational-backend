@@ -16,11 +16,11 @@ const purchaseOrderSchema = new mongoose.Schema(
   {
     // Unique purchase order identifier shared across draft/order/confirmation
     purchaseOrderId: { type: String, required: true, unique: true },
-    
+
     // Owner info (polymorphic: "User" or "Guest")
     ownerType: { type: String, enum: ["User", "Guest"], required: true },
     ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    
+
     // Bank / Payment info (optional)
     bankName: { type: String },
     accountNo: { type: String },
@@ -46,6 +46,11 @@ const purchaseOrderSchema = new mongoose.Schema(
       postalCode: { type: String },
       country: { type: String },
     },
+
+    // Checkout summary values
+    subtotal: { type: Number, default: 0 },
+    shippingCost: { type: Number, default: 0 },
+    estimatedTax: { type: Number, default: 0 },
 
     // Total order amount
     totalAmount: { type: Number, default: 0 },

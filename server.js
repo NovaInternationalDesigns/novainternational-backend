@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import connectDB from "./config/db.js";
+import Stripe from "stripe";
 
 // Routes
 import authRoutes from "./routes/auth/index.js";
@@ -17,12 +18,8 @@ import paymentRoutes from "./routes/payment.js";
 import webhookRoutes from "./routes/webhook.js";
 import guestRoutes from "./routes/guests.js";
 import ordersRoutes from "./routes/orders.js";
-import Stripe from "stripe";
 
-// stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Load environment variables based on NODE_ENV
+// LOAD ENV FIRST (IMPORTANT)
 const env = process.env.NODE_ENV;
 
 if (env === "production") {
@@ -30,21 +27,22 @@ if (env === "production") {
 } else if (env === "test") {
   dotenv.config({ path: ".env.test" });
 } else {
-  dotenv.config(); // defaults to .env
+  dotenv.config();
 }
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
-// Connect to database
+// CONNECT DATABASE
 connectDB();
 
-// Middleware
-app.use(express.json());
+// STRIPE WEBHOOK (MUST BE FIRST)
+app.use("/api/webhook", webhookRoutes);
 
 // CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://calm-blini-7a30a5.netlify.app",
   "https://www.novainternationaldesigns.com",
 ];
 
@@ -56,12 +54,10 @@ app.use(
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Session
+// SESSION
 app.use(
   session({
     name: "nova.sid",
@@ -73,12 +69,15 @@ app.use(
       httpOnly: true,
       secure: env === "production",
       sameSite: env === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })
 );
 
-// Routes
+// JSON PARSER (AFTER WEBHOOK)
+app.use(express.json());
+
+// ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
@@ -86,15 +85,10 @@ app.use("/api/purchase-order", purchaseOrderRoute);
 app.use("/api/purchaseOrderDraft", purchaseOrderDraftRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/orders", ordersRoutes);
-
-// Payment and Webhook Routes
-app.use("/api/webhook", webhookRoutes);
 app.use("/api/payment", paymentRoutes);
-
-// Add signup route
 app.use("/api/signup", signupRouter);
 
-// Health check
+// HEALTH CHECK
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
@@ -102,47 +96,18 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Root
+
+//ROOT
 app.get("/", (req, res) => {
   res.send("Backend is running...");
 });
 
-// Logout
-app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: "Logout failed" });
-    }
 
-    res.clearCookie("nova.sid", {
-      httpOnly: true,
-      sameSite: env === "production" ? "none" : "lax",
-      secure: env === "production",
-    });
-
-    res.json({ message: "Logged out successfully" });
-  });
-});
-
-// stripe test endpoint
-
-app.post('/create-payment-intent', async (req, res) => {
-  const { amount } = req.body;
-  try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: 'usd',
-    });
-    res.status(200).send({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Server
+//SERVER
 const PORT = process.env.PORT || 5000;
+
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

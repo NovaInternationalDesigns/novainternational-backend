@@ -18,7 +18,7 @@ router.get("/:ownerType/:ownerId", async (req, res) => {
     }
 
     // Convert string ownerId to ObjectId for MongoDB query
-    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
       ? new mongoose.Types.ObjectId(ownerId)
       : ownerId;
 
@@ -54,7 +54,7 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
     }
 
     // Convert string ownerId to ObjectId for MongoDB query
-    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
       ? new mongoose.Types.ObjectId(ownerId)
       : ownerId;
 
@@ -71,6 +71,7 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
       name: i.name,
       price: i.price,
       qty: i.qty,
+      image: i.image || null,
       color: i.color,
       size: i.size,
     }))];
@@ -87,6 +88,7 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
           name: item.name,
           price: item.price,
           qty: Number(item.quantity) || 0,
+          image: item.image || null,
           color: item.color || null,
           size: item.size || null,
         });
@@ -120,7 +122,7 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
     }
 
     // Convert string ownerId to ObjectId for MongoDB query
-    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId) 
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
       ? new mongoose.Types.ObjectId(ownerId)
       : ownerId;
 
@@ -160,6 +162,57 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
   } catch (err) {
     console.error("Error deleting items from PO:", err);
     res.status(500).json({ error: "Failed to delete items from PO" });
+  }
+});
+
+/**
+ * PATCH /:ownerType/:ownerId/items
+ * Update quantity for a single item in draft PO
+ */
+router.patch("/:ownerType/:ownerId/items", async (req, res) => {
+  try {
+    const { ownerType, ownerId } = req.params;
+    const { productId, color, size, qty } = req.body || {};
+
+    if (!['User', 'Guest'].includes(ownerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
+
+    if (!productId) {
+      return res.status(400).json({ error: "productId is required" });
+    }
+
+    const numericQty = Number(qty);
+    if (!Number.isFinite(numericQty) || numericQty < 1) {
+      return res.status(400).json({ error: "qty must be a number greater than or equal to 1" });
+    }
+
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
+      ? new mongoose.Types.ObjectId(ownerId)
+      : ownerId;
+
+    const po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
+    if (!po) return res.status(404).json({ error: "Draft not found" });
+
+    const index = po.items.findIndex(
+      (i) =>
+        i.productId === productId &&
+        (color ? i.color === color : true) &&
+        (size ? i.size === size : true)
+    );
+
+    if (index === -1) {
+      return res.status(404).json({ error: "Item not found in draft" });
+    }
+
+    po.items[index].qty = numericQty;
+    po.updatedAt = new Date();
+    await po.save();
+
+    return res.json({ message: "Item quantity updated", po });
+  } catch (err) {
+    console.error("Error updating item quantity in PO:", err);
+    return res.status(500).json({ error: "Failed to update item quantity" });
   }
 });
 
