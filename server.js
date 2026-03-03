@@ -42,18 +42,20 @@ app.use("/api/webhook", webhookRoutes);
 
 // CORS
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://www.novainternationaldesigns.com",
+  "http://localhost:5173", // local dev
+  "https://calm-blini-7a30a5.netlify.app", // Netlify test
+  "https://www.novainternationaldesigns.com", // production
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true); // allow Postman, server-to-server requests
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.log("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     },
-    credentials: true,
+    credentials: true, // needed if using cookies/session
   })
 );
 
