@@ -1,10 +1,19 @@
+// routes/orders.js
 import express from "express";
+import mongoose from "mongoose";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 
 const router = express.Router();
 
 /* =============================
-   GET MY ORDERS
+   Helper to convert to ObjectId
+============================= */
+const toObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
+};
+
+/* =============================
+   GET MY ORDERS (logged-in session)
 ============================= */
 router.get("/my-orders", async (req, res) => {
   try {
@@ -13,9 +22,11 @@ router.get("/my-orders", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const ownerId = toObjectId(sessionUserId);
+
     const orders = await PurchaseOrder.find({
       ownerType: "User",
-      ownerId: sessionUserId,
+      ownerId,
     }).sort({ createdAt: -1 });
 
     res.json({ orders, count: orders.length });
@@ -31,10 +42,11 @@ router.get("/my-orders", async (req, res) => {
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    const ownerId = toObjectId(userId);
 
     const orders = await PurchaseOrder.find({
       ownerType: "User",
-      ownerId: userId,
+      ownerId,
     }).sort({ createdAt: -1 });
 
     res.json({ orders, count: orders.length });
@@ -50,10 +62,11 @@ router.get("/user/:userId", async (req, res) => {
 router.get("/guest/:guestId", async (req, res) => {
   try {
     const { guestId } = req.params;
+    const ownerId = toObjectId(guestId);
 
     const orders = await PurchaseOrder.find({
       ownerType: "Guest",
-      ownerId: guestId,
+      ownerId,
     }).sort({ createdAt: -1 });
 
     res.json({ orders, count: orders.length });

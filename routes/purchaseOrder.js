@@ -1,4 +1,4 @@
-// purchaseorder.js
+// purchaseorder.js (Stripe-friendly)
 import express from "express";
 import crypto from "crypto";
 import mongoose from "mongoose";
@@ -9,7 +9,7 @@ import Guest from "../models/Guest.js";
 
 const router = express.Router();
 
-// Create new purchase order
+// Create new purchase order (Stripe-ready)
 router.post("/", async (req, res) => {
   try {
     const {
@@ -19,6 +19,7 @@ router.post("/", async (req, res) => {
       purchaseOrderId: incomingPOId,
       ownerType,
       ownerId,
+      stripeSessionId,
     } = req.body;
 
     // Validate email if provided
@@ -113,7 +114,8 @@ router.post("/", async (req, res) => {
       ownerId: mongoose.Types.ObjectId.isValid(finalOwnerId)
         ? new mongoose.Types.ObjectId(finalOwnerId)
         : finalOwnerId,
-      paymentStatus: "pending", // Important: mark as pending initially
+      stripeSessionId: stripeSessionId || null, // Link order to Stripe session
+      paymentStatus: "pending", // Initially pending
     };
 
     // Save order with retry logic for unique purchaseOrderId
@@ -138,7 +140,6 @@ router.post("/", async (req, res) => {
 
     if (!order) throw new Error("Failed to save order after multiple attempts");
 
-    // ✅ DO NOT send email here — will send after Stripe payment
     res.json({ message: "Order saved successfully", order });
   } catch (error) {
     console.error("PurchaseOrder save error:", error);

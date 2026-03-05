@@ -4,17 +4,18 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Create transporter (Office365 SMTP)
 const transporter = nodemailer.createTransport({
-  host: "smtp.office365.com",
-  port: 587,
-  secure: false, // STARTTLS
-  requireTLS: true,
+  host: "smtpout.secureserver.net",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  logger: true,
+  debug: true
 });
+
 
 // Verify SMTP connection on startup
 transporter.verify((err, success) => {
@@ -35,8 +36,8 @@ export const sendEmail = async (to, subject, content, isHtml = true) => {
   try {
     const info = await transporter.sendMail({
       from: `"Nova International Designs" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
+      to: process.env.EMAIL_USER,
+      subject: "SMTP Test",
       [isHtml ? "html" : "text"]: content,
     });
 

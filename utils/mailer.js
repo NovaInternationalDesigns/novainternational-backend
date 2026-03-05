@@ -3,16 +3,16 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Create transporter (GoDaddy SMTP)
 const transporter = nodemailer.createTransport({
-    host: "smtp.office365.com",
-    port: 587,
-    secure: false, // Use STARTTLS
-    requireTLS: true,
-    auth: {
-        user: process.env.EMAIL_USER, // e.g., info@novainternationaldesigns.com
-        pass: process.env.EMAIL_PASS, // App password or actual password
-    },
+  host: "smtpout.secureserver.net",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  logger: true,
+  debug: true
 });
 
 // Verify SMTP connection
