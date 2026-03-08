@@ -7,6 +7,7 @@ const transporter = nodemailer.createTransport({
     host: "outlook.office365.com",
     port: 587,
     secure: false,
+    requireTLS: true,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
@@ -16,8 +17,16 @@ const transporter = nodemailer.createTransport({
     },
     logger: true,
     tls: {
-        ciphers: "SSLv3",
+        minVersion: "TLSv1.2",
     },
+});
+
+transporter.verify((err) => {
+    if (err) {
+        console.error("[OrderEmail] SMTP verify failed:", err?.message || err);
+        return;
+    }
+    console.log("[OrderEmail] SMTP verified and ready");
 });
 
 const resolveCustomerEmail = async (order) => {
@@ -120,6 +129,12 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
 export function sendOrderEmailsInBackground(orderLike, logPrefix = "OrderEmail") {
     // Never block request/response lifecycle on SMTP availability.
     Promise.resolve(sendOrderEmailsIfNeeded(orderLike, logPrefix)).catch((err) => {
-        console.error(`[${logPrefix}] Async email dispatch failed:`, err?.message || err);
+        console.error(`[${logPrefix}] Async email dispatch failed:`, {
+            message: err?.message || String(err),
+            code: err?.code,
+            command: err?.command,
+            responseCode: err?.responseCode,
+            response: err?.response,
+        });
     });
 }

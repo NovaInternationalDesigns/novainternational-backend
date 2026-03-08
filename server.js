@@ -18,6 +18,7 @@ import paymentRoutes from "./routes/payment.js";
 import webhookRoutes from "./routes/webhook.js";
 import guestRoutes from "./routes/guests.js";
 import ordersRoutes from "./routes/orders.js";
+import debugRoutes from "./routes/debug.js";
 
 // LOAD ENV FIRST (IMPORTANT)
 const env = process.env.NODE_ENV;
@@ -118,6 +119,10 @@ app.use("/api/guests", guestRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/signup", signupRouter);
+
+if (process.env.DEBUG_SMTP_ENABLED === "true") {
+  app.use("/api/debug", debugRoutes);
+}
 
 // HEALTH CHECK
 app.get("/health", (req, res) => {
