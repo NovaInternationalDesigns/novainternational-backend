@@ -11,6 +11,11 @@ router.get("/smtp-test", async (req, res) => {
     try {
         const { to } = req.query;
         const { EMAIL_USER, EMAIL_PASS, NODE_ENV } = process.env;
+        const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+        const SMTP_HOST = process.env.SMTP_HOST || "smtp.office365.com";
+        const SMTP_FALLBACK_HOST = process.env.SMTP_FALLBACK_HOST || "outlook.office365.com";
+        const SMTP_EXTRA_FALLBACK_HOST =
+            process.env.SMTP_EXTRA_FALLBACK_HOST || "smtp-mail.outlook.com";
 
         if (!EMAIL_USER || !EMAIL_PASS) {
             return res.status(500).json({
@@ -19,31 +24,43 @@ router.get("/smtp-test", async (req, res) => {
             });
         }
 
-        // Create SMTP transporter with pooling
-        const transporter = nodemailer.createTransport({
-            host: "outlook.office365.com",
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: { user: EMAIL_USER, pass: EMAIL_PASS },
-            tls: { minVersion: "TLSv1.2" },
-            pool: true,           // enable connection pooling
-            maxConnections: 5,
-            maxMessages: 100,
-            connectionTimeout: 20000,
-            greetingTimeout: 15000,
-            socketTimeout: 20000,
-            logger: NODE_ENV !== "production",
-        });
+        const hosts = [SMTP_HOST, SMTP_FALLBACK_HOST, SMTP_EXTRA_FALLBACK_HOST].filter(
+            (host, index, arr) => host && arr.indexOf(host) === index
+        );
 
-        // Only verify SMTP in development
-        if (NODE_ENV !== "production") {
+        const createTransport = (host) =>
+            nodemailer.createTransport({
+                host,
+                port: SMTP_PORT,
+                secure: SMTP_PORT === 465,
+                requireTLS: SMTP_PORT !== 465,
+                auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+                tls: { minVersion: "TLSv1.2" },
+                connectionTimeout: 30000,
+                greetingTimeout: 20000,
+                socketTimeout: 30000,
+                logger: NODE_ENV !== "production",
+            });
+
+        let transporter = null;
+        let verifiedHost = null;
+        let lastVerifyError = null;
+
+        for (const host of hosts) {
             try {
-                await transporter.verify();
-                console.log("✅ SMTP credentials verified (dev only).");
+                const candidate = createTransport(host);
+                await candidate.verify();
+                transporter = candidate;
+                verifiedHost = host;
+                break;
             } catch (verifyErr) {
-                console.warn("⚠ SMTP verification failed (ignored in dev):", verifyErr.message);
+                lastVerifyError = verifyErr;
+                console.warn(`[SMTP Test] verify failed for ${host}:`, verifyErr?.message);
             }
+        }
+
+        if (!transporter) {
+            throw lastVerifyError || new Error("SMTP verification failed for all hosts");
         }
 
         let emailSent = false;
@@ -61,11 +78,12 @@ router.get("/smtp-test", async (req, res) => {
 
         return res.json({
             ok: true,
-            verified: NODE_ENV === "production" ? "skipped" : true,
+            verified: true,
+            host: verifiedHost,
             emailSent,
             message: emailSent
                 ? "SMTP verified and test email sent."
-                : "SMTP verified successfully or skipped in production.",
+                : "SMTP verified successfully.",
         });
     } catch (error) {
         console.error("SMTP Test Error:", error);

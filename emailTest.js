@@ -1,77 +1,71 @@
-// scripts/emailTest.js
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
-// Destructure environment variables
-const { EMAIL_USER, EMAIL_PASS, NODE_ENV } = process.env;
+async function emailTest() {
+  const { EMAIL_USER, EMAIL_PASS } = process.env;
+  const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+  const SMTP_HOST = process.env.SMTP_HOST || "smtp.office365.com";
+  const SMTP_FALLBACK_HOST = process.env.SMTP_FALLBACK_HOST || "outlook.office365.com";
+  const SMTP_EXTRA_FALLBACK_HOST =
+    process.env.SMTP_EXTRA_FALLBACK_HOST || "smtp-mail.outlook.com";
 
-// Validate environment variables
-if (!EMAIL_USER || !EMAIL_PASS) {
-  console.error("❌ Missing EMAIL_USER or EMAIL_PASS in environment variables.");
-  process.exit(1);
-}
+  // Validate environment variables
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    console.error("❌ Missing EMAIL_USER or EMAIL_PASS in environment variables.");
+    process.exit(1);
+  }
 
-// Create a pooled SMTP transporter
-const transporter = nodemailer.createTransport({
-  host: "outlook.office365.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: { user: EMAIL_USER, pass: EMAIL_PASS },
-  tls: { minVersion: "TLSv1.2" },
-  pool: true,          // reuse connections for multiple emails
-  maxConnections: 5,
-  maxMessages: 100,
-  connectionTimeout: 20000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000,
-  logger: NODE_ENV !== "production", // only log in dev
-});
+  const hosts = [SMTP_HOST, SMTP_FALLBACK_HOST, SMTP_EXTRA_FALLBACK_HOST].filter(
+    (host, index, arr) => host && arr.indexOf(host) === index
+  );
 
-// Optional: verify SMTP only in development
-async function verifySMTP() {
-  if (NODE_ENV === "production") return;
+  const createTransport = (host) =>
+    nodemailer.createTransport({
+      host,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465,
+      requireTLS: SMTP_PORT !== 465,
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
+      tls: {
+        minVersion: "TLSv1.2",
+      },
+      connectionTimeout: 30000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
+      logger: true,
+    });
 
   try {
-    console.log("🔎 Verifying SMTP connection (dev only)...");
-    await transporter.verify();
-    console.log("✅ SMTP credentials are valid.");
-  } catch (err) {
-    console.warn("⚠ SMTP verification failed (ignored in dev):", err.message);
-  }
-}
+    console.log("🔎 Verifying SMTP connection...");
 
-// Function to send a test email with retry logic
-async function sendTestEmail(to = EMAIL_USER) {
-  const mailOptions = {
-    from: `"Nova Test" <${EMAIL_USER}>`,
-    to,
-    subject: "✅ Nova International - SMTP Test",
-    html: `<p>✅ Email system is working! Sent at ${new Date().toLocaleString()}</p>`,
-  };
-
-  const retries = 3;
-  for (let i = 0; i < retries; i++) {
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("✅ Test email sent successfully!");
-      console.log("Message ID:", info.messageId);
-      console.log(`📧 Check your inbox: ${to}`);
-      return;
-    } catch (err) {
-      if (err.code === "ETIMEDOUT" && i < retries - 1) {
-        console.warn(`⏳ Timeout, retrying (${i + 1}/${retries})...`);
-        await new Promise((r) => setTimeout(r, 2000));
-      } else {
-        console.error("❌ Failed to send test email:", err.message);
-        return;
+    let verified = false;
+    for (const host of hosts) {
+      try {
+        const transporter = createTransport(host);
+        await transporter.verify();
+        console.log(`✅ SMTP verified using ${host}:${SMTP_PORT}`);
+        verified = true;
+        break;
+      } catch (err) {
+        console.warn(`⚠ Verify failed on ${host}:${SMTP_PORT} ->`, err?.message || err);
       }
     }
+
+    if (!verified) {
+      throw new Error("SMTP verification failed on all configured hosts.");
+    }
+
+    console.log("✅ SMTP credentials are valid. Email service is ready.");
+  } catch (error) {
+    console.error("❌ SMTP verification failed.");
+    console.error("Message:", error?.message);
+    console.error("Code:", error?.code || "N/A");
+  } finally {
+    process.exit();
   }
 }
 
-// Main execution
-(async () => {
-  await verifySMTP();
-  await sendTestEmail();
-})();
+emailTest();
