@@ -6,46 +6,40 @@ dotenv.config();
 
 const { EMAIL_USER, EMAIL_PASS, ADMIN_EMAIL } = process.env;
 
-if (!EMAIL_USER || !EMAIL_PASS) {
-  console.error("❌ Missing EMAIL_USER or EMAIL_PASS in environment variables.");
-  process.exit(1);
+let transporter = null;
+
+// Only create transporter if credentials exist
+if (EMAIL_USER && EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    host: "outlook.office365.com",
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+    tls: { minVersion: "TLSv1.2" },
+    connectionTimeout: 20000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    logger: false, // true for debug
+  });
+
+  console.log("📧 Mailer initialized with Outlook SMTP.");
+} else {
+  console.warn("⚠️ EMAIL_USER or EMAIL_PASS not set. Mailer disabled.");
 }
 
-// Create SMTP transporter for Outlook
-const transporter = nodemailer.createTransport({
-  host: "outlook.office365.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  },
-  tls: {
-    minVersion: "TLSv1.2",
-  },
-  connectionTimeout: 20000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000,
-  pool: true,            // Enable connection pooling
-  maxConnections: 5,
-  maxMessages: 100,
-  logger: true,          // Set to false in production
-});
-
-// Verify connection on startup
-transporter.verify((err, success) => {
-  if (success) {
-    console.log("✅ Email service connected - SMTP ready");
-  } else {
-    console.error("❌ Email service failed:", err?.message || "Unknown error");
-  }
-});
-
 /**
- * Send a generic email
+ * Generic send email
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
+  if (!transporter) {
+    console.warn("⚠️ Mailer not configured. Email not sent:", subject);
+    return false;
+  }
+
   try {
     await transporter.sendMail({
       from: `"Nova International Designs" <${EMAIL_USER}>`,
@@ -74,16 +68,13 @@ export const sendWelcomeEmail = async (email, name) => {
  * Send purchase order confirmation email
  */
 export const sendPurchaseOrderConfirmation = async (email, orderData) => {
-  const { purchaseOrderId, customerName, items = [], totalAmount, shippingInfo, notes, createdAt } = orderData;
+  if (!orderData) return false;
 
-  const orderDate = createdAt
-    ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-    : new Date().toLocaleDateString();
+  const { purchaseOrderId, customerName, items = [], totalAmount } = orderData;
 
-  let itemsHTML = items
+  const itemsHTML = items
     .map(
-      (item) => `
-      <tr>
+      (item) => `<tr>
         <td>${item.styleNo || "N/A"} - ${item.description || "Product"}</td>
         <td>${item.color || "-"}</td>
         <td>${item.size || "-"}</td>
@@ -94,58 +85,34 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
     )
     .join("");
 
-  const htmlContent = `
+  const html = `
     <h2>Purchase Order Confirmation</h2>
     <p><strong>Order ID:</strong> ${purchaseOrderId}</p>
-    <p><strong>Order Date:</strong> ${orderDate}</p>
     <p><strong>Customer Name:</strong> ${customerName || "N/A"}</p>
     <table border="1" cellspacing="0" cellpadding="6">
-      <thead>
-        <tr><th>Product</th><th>Color</th><th>Size</th><th>Qty</th><th>Price</th><th>Total</th></tr>
-      </thead>
-      <tbody>
-        ${itemsHTML}
-      </tbody>
+      <thead><tr><th>Product</th><th>Color</th><th>Size</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+      <tbody>${itemsHTML}</tbody>
     </table>
     <p><strong>Order Total:</strong> $${(totalAmount || 0).toFixed(2)}</p>
-    ${shippingInfo ? `<p><strong>Shipping:</strong> ${shippingInfo.name || ""}, ${shippingInfo.address || ""}</p>` : ""}
-    ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
   `;
 
-  return sendEmail({ to: email, subject: `Purchase Order Confirmation - ${purchaseOrderId}`, html: htmlContent });
+  return sendEmail({ to: email, subject: `Purchase Order #${purchaseOrderId}`, html });
 };
 
 /**
- * Send payment confirmation email
- */
-export const sendPaymentConfirmationEmail = async (email, paymentData) => {
-  const { purchaseOrderId, customerName, totalAmount } = paymentData;
-  const htmlContent = `
-    <p>Hi ${customerName || ""},</p>
-    <p>Your payment for order <strong>${purchaseOrderId}</strong> has been received.</p>
-    <p>Total Amount Paid: <strong>$${(totalAmount || 0).toFixed(2)}</strong></p>
-    <p>Thank you for your purchase!</p>
-  `;
-  return sendEmail({ to: email, subject: `Payment Confirmation - ${purchaseOrderId}`, html: htmlContent });
-};
-
-/**
- * Send admin notification email
+ * Admin notification email
  */
 export const sendAdminOrderNotification = async (orderData) => {
   const adminEmail = ADMIN_EMAIL || EMAIL_USER;
   if (!adminEmail) return false;
 
-  const orderId = orderData.purchaseOrderId || "N/A";
-  const customerName = orderData.customerName || orderData.shippingInfo?.name || "N/A";
-  const total = Number(orderData.totalAmount || 0).toFixed(2);
+  const orderId = orderData?.purchaseOrderId || "N/A";
+  const total = Number(orderData?.totalAmount || 0).toFixed(2);
 
-  const htmlContent = `
-    <h3>New Paid Order Received</h3>
+  const html = `<h3>New Paid Order Received</h3>
     <p><strong>Order ID:</strong> ${orderId}</p>
-    <p><strong>Customer Name:</strong> ${customerName}</p>
     <p><strong>Total Amount:</strong> $${total}</p>
   `;
 
-  return sendEmail({ to: adminEmail, subject: `New Paid Order - ${orderId}`, html: htmlContent });
+  return sendEmail({ to: adminEmail, subject: `New Paid Order - ${orderId}`, html });
 };
