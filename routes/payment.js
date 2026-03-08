@@ -317,6 +317,32 @@ router.get("/order/:sessionId", async (req, res) => {
 
     const existing = await PurchaseOrder.findOne({ stripeSessionId: sessionId });
     if (existing) {
+      // Webhooks can be delayed/missed in production. Reconcile the current order directly from Stripe.
+      if (existing.paymentStatus !== "paid") {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sessionId);
+          if (session?.payment_status === "paid") {
+            existing.paymentStatus = "paid";
+
+            const sessionEmail =
+              session.customer_email || session.customer_details?.email || "";
+            if (!existing.email && sessionEmail) {
+              existing.email = sessionEmail;
+            }
+
+            await existing.save();
+            sendOrderEmailsInBackground(existing, "PaymentReconcile");
+          }
+        } catch (stripeErr) {
+          if (!isStripeSessionLookupError(stripeErr)) {
+            console.warn("Stripe reconcile warning:", stripeErr?.message || stripeErr);
+          }
+        }
+      } else {
+        // Idempotent fallback in case webhook delivered state but email failed earlier.
+        sendOrderEmailsInBackground(existing, "PaymentExisting");
+      }
+
       return res.json(existing);
     }
 
