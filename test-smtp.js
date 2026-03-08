@@ -13,19 +13,24 @@ console.log("  Password length:", process.env.SMTP_PASS ? process.env.SMTP_PASS.
 console.log("═".repeat(50));
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST, // e.g. outlook.office365.com
-    port: parseInt(process.env.SMTP_PORT), // typically 587
-    secure: false, // use TLS via STARTTLS
+    host: "outlook.office365.com",
+    port: 587,
+    secure: false,
+    requireTLS: true,
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
     },
     tls: {
-        minVersion: "TLSv1.2", // ensure secure connection
+        minVersion: "TLSv1.2",
     },
     connectionTimeout: 20000,
     greetingTimeout: 15000,
     socketTimeout: 20000,
+    pool: true,            // <-- Enable connection pooling
+    maxConnections: 5,     // Optional: max simultaneous connections
+    maxMessages: 100,      // Optional: max messages per connection before reconnect
+    logger: true,          // set to false in production
 });
 
 console.log("\n⏳ Testing connection...\n");

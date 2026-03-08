@@ -7,15 +7,21 @@ const transporter = nodemailer.createTransport({
   host: "outlook.office365.com",
   port: 587,
   secure: false,
+  requireTLS: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
   },
-  logger: true,
-  // debug: true,
   tls: {
-    ciphers: "SSLv3"
-  }
+    minVersion: "TLSv1.2",
+  },
+  connectionTimeout: 20000,
+  greetingTimeout: 15000,
+  socketTimeout: 20000,
+  pool: true,            // <-- Enable connection pooling
+  maxConnections: 5,     // Optional: max simultaneous connections
+  maxMessages: 100,      // Optional: max messages per connection before reconnect
+  logger: true,          // set to false in production
 });
 
 

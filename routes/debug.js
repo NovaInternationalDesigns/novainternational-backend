@@ -36,6 +36,10 @@ router.get("/smtp-test", async (req, res) => {
             connectionTimeout: 20000,
             greetingTimeout: 15000,
             socketTimeout: 20000,
+            pool: true,            // <-- Enable connection pooling
+            maxConnections: 5,     // Optional: max simultaneous connections
+            maxMessages: 100,      // Optional: max messages per connection before reconnect
+            logger: true,          // set to false in production
         });
 
         // Verify SMTP connection
