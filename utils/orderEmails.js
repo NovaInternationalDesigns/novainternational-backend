@@ -3,23 +3,33 @@ import PurchaseOrder from "../models/PurchaseOrder.js";
 import User from "../models/User.js";
 import Guest from "../models/Guest.js";
 
-const transporter = nodemailer.createTransport({
-    host: "outlook.office365.com",
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    logger: true,
-    tls: {
-        minVersion: "TLSv1.2",
-    },
-});
+const SMTP_HOST = process.env.SMTP_HOST || "smtp.office365.com";
+const SMTP_FALLBACK_HOST = process.env.SMTP_FALLBACK_HOST || "outlook.office365.com";
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_EXTRA_FALLBACK_HOST =
+    process.env.SMTP_EXTRA_FALLBACK_HOST || "smtp-mail.outlook.com";
+
+function createTransport(host) {
+    return nodemailer.createTransport({
+        host,
+        port: SMTP_PORT,
+        secure: SMTP_PORT === 465,
+        requireTLS: SMTP_PORT !== 465,
+        connectionTimeout: 30000,
+        greetingTimeout: 20000,
+        socketTimeout: 30000,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        logger: true,
+        tls: {
+            minVersion: "TLSv1.2",
+        },
+    });
+}
+
+let transporter = createTransport(SMTP_HOST);
 
 transporter.verify((err) => {
     if (err) {
@@ -28,6 +38,49 @@ transporter.verify((err) => {
     }
     console.log("[OrderEmail] SMTP verified and ready");
 });
+
+async function sendMailWithFallback(mailOptions) {
+    try {
+        return await transporter.sendMail(mailOptions);
+    } catch (err) {
+        const isTimeout =
+            err?.code === "ETIMEDOUT" ||
+            /timeout/i.test(String(err?.message || ""));
+
+        if (!isTimeout) {
+            throw err;
+        }
+
+        const fallbackHosts = [SMTP_FALLBACK_HOST, SMTP_EXTRA_FALLBACK_HOST].filter(
+            (host) => host && host !== SMTP_HOST
+        );
+
+        let lastError = err;
+        for (const host of fallbackHosts) {
+            try {
+                console.warn("[OrderEmail] SMTP timeout. Retrying with fallback host", {
+                    primaryHost: SMTP_HOST,
+                    retryHost: host,
+                    port: SMTP_PORT,
+                });
+
+                transporter = createTransport(host);
+                return await transporter.sendMail(mailOptions);
+            } catch (retryErr) {
+                lastError = retryErr;
+                const retryTimedOut =
+                    retryErr?.code === "ETIMEDOUT" ||
+                    /timeout/i.test(String(retryErr?.message || ""));
+
+                if (!retryTimedOut) {
+                    throw retryErr;
+                }
+            }
+        }
+
+        throw lastError;
+    }
+}
 
 const resolveCustomerEmail = async (order) => {
     if (order?.email) return order.email;
@@ -69,7 +122,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
 
         if (claimedCustomer) {
             try {
-                await transporter.sendMail({
+                await sendMailWithFallback({
                     from: process.env.EMAIL_USER,
                     to: customerEmail,
                     subject: `Purchase Order Confirmation - ${order.purchaseOrderId}`,
@@ -102,7 +155,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
 
         if (claimedAdmin) {
             try {
-                await transporter.sendMail({
+                await sendMailWithFallback({
                     from: process.env.EMAIL_USER,
                     to: adminEmail,
                     subject: `New Order Received - ${order.purchaseOrderId}`,

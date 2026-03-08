@@ -6,6 +6,7 @@ import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
 import User from "../models/User.js";
 import Guest from "../models/Guest.js";
+import { sendOrderEmailsInBackground } from "../utils/orderEmails.js";
 
 const router = express.Router();
 
@@ -139,6 +140,9 @@ router.post("/", async (req, res) => {
     }
 
     if (!order) throw new Error("Failed to save order after multiple attempts");
+
+    // Email send is intentionally async so order creation never fails because of SMTP issues.
+    sendOrderEmailsInBackground(order, "PurchaseOrderCreate");
 
     res.json({ message: "Order saved successfully", order });
   } catch (error) {
