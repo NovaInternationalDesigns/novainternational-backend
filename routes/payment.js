@@ -6,7 +6,7 @@ import PurchaseOrder from "../models/PurchaseOrder.js";
 import PurchaseOrderDraft from "../models/PurchaseOrderDraft.js";
 import User from "../models/User.js";
 import Guest from "../models/Guest.js";
-import { sendOrderEmailsIfNeeded } from "../utils/orderEmails.js";
+import { sendOrderEmailsInBackground } from "../utils/orderEmails.js";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -154,11 +154,19 @@ async function createOrderFromStripeSession(sessionId) {
   });
 
   if (order.paymentStatus === "paid") {
-    await sendOrderEmailsIfNeeded(order, "PaymentFallback");
+    sendOrderEmailsInBackground(order, "PaymentFallback");
   }
 
   return order;
 }
+
+const isStripeSessionLookupError = (err) => {
+  if (!err) return false;
+  return (
+    err.type === "StripeInvalidRequestError" ||
+    String(err?.message || "").toLowerCase().includes("no such checkout.session")
+  );
+};
 
 /** CREATE STRIPE CHECKOUT SESSION */
 router.post("/create-checkout-session", async (req, res) => {
@@ -303,11 +311,12 @@ router.get("/order/:sessionId", async (req, res) => {
       return res.status(400).json({ error: "sessionId is required" });
     }
 
+    if (!String(sessionId).startsWith("cs_")) {
+      return res.status(400).json({ error: "Invalid Stripe session id" });
+    }
+
     const existing = await PurchaseOrder.findOne({ stripeSessionId: sessionId });
     if (existing) {
-      if (existing.paymentStatus === "paid") {
-        await sendOrderEmailsIfNeeded(existing, "PaymentFetch");
-      }
       return res.json(existing);
     }
 
@@ -316,13 +325,24 @@ router.get("/order/:sessionId", async (req, res) => {
       return res.status(404).json({ error: "Order not found for this session" });
     }
 
-    if (order.paymentStatus === "paid") {
-      await sendOrderEmailsIfNeeded(order, "PaymentFetch");
-    }
-
     return res.json(order);
   } catch (err) {
     console.error("Fetch order by session error:", err);
+
+    if (isStripeSessionLookupError(err)) {
+      return res.status(404).json({
+        error: "Order not found for this Stripe session.",
+        details:
+          "This session may belong to a different Stripe account/environment or may be expired.",
+      });
+    }
+
+    if (err?.code === 11000) {
+      const { sessionId } = req.params;
+      const existing = await PurchaseOrder.findOne({ stripeSessionId: sessionId });
+      if (existing) return res.json(existing);
+    }
+
     return res.status(500).json({ error: "Failed to fetch order", details: err.message });
   }
 });

@@ -34,6 +34,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
+const isProdLike = env === "production" || process.env.RENDER === "true";
+
+if (isProdLike) {
+  // Required on Render/Heroku-style proxies so secure cookies are set correctly.
+  app.set("trust proxy", 1);
+}
+
 // CONNECT DATABASE
 connectDB();
 
@@ -55,11 +62,25 @@ const allowedOrigins = [
   ...envOrigins,
 ];
 
+const normalizeOrigin = (value) => String(value || "").replace(/\/$/, "");
+
+const allowOrigin = (origin) => {
+  const clean = normalizeOrigin(origin);
+  if (!clean) return true;
+
+  if (allowedOrigins.map(normalizeOrigin).includes(clean)) return true;
+
+  // Allow any Netlify preview/testing subdomain for deployment parity.
+  if (/^https:\/\/[a-z0-9-]+\.netlify\.app$/i.test(clean)) return true;
+
+  return false;
+};
+
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true); // allow Postman, server-to-server requests
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (allowOrigin(origin)) return callback(null, true);
       console.log("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     },
@@ -77,8 +98,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       httpOnly: true,
-      secure: env === "production",
-      sameSite: env === "production" ? "none" : "lax",
+      secure: isProdLike,
+      sameSite: isProdLike ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })

@@ -7,6 +7,9 @@ const transporter = nodemailer.createTransport({
     host: "outlook.office365.com",
     port: 587,
     secure: false,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -36,50 +39,87 @@ const resolveCustomerEmail = async (order) => {
 export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail") {
     if (!orderLike?._id) return;
 
-    const order = await PurchaseOrder.findById(orderLike._id);
+    const order = await PurchaseOrder.findById(orderLike._id).lean();
     if (!order) return;
 
     const customerEmail = await resolveCustomerEmail(order);
     const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
 
-    const updates = {};
+    if (customerEmail) {
+        const reservation = new Date();
+        const claimedCustomer = await PurchaseOrder.findOneAndUpdate(
+            { _id: order._id, customerEmailSentAt: null },
+            {
+                $set: {
+                    customerEmailSentAt: reservation,
+                    ...(order.email ? {} : { email: customerEmail }),
+                },
+            },
+            { new: true }
+        ).lean();
 
-    if (!order.customerEmailSentAt && customerEmail) {
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: customerEmail,
-            subject: `Purchase Order Confirmation - ${order.purchaseOrderId}`,
-            html: `<h2>Thank you for your purchase</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Total: $${Number(
-                order.totalAmount || 0
-            ).toFixed(2)}</p>`,
-        });
+        if (claimedCustomer) {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: customerEmail,
+                    subject: `Purchase Order Confirmation - ${order.purchaseOrderId}`,
+                    html: `<h2>Thank you for your purchase</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Total: $${Number(
+                        order.totalAmount || 0
+                    ).toFixed(2)}</p>`,
+                });
 
-        updates.customerEmailSentAt = new Date();
-        if (!order.email) updates.email = customerEmail;
-        console.log(`[${logPrefix}] Customer email sent`, {
-            purchaseOrderId: order.purchaseOrderId,
-            to: customerEmail,
-        });
+                console.log(`[${logPrefix}] Customer email sent`, {
+                    purchaseOrderId: order.purchaseOrderId,
+                    to: customerEmail,
+                });
+            } catch (err) {
+                await PurchaseOrder.updateOne(
+                    { _id: order._id, customerEmailSentAt: reservation },
+                    { $set: { customerEmailSentAt: null } }
+                );
+                throw err;
+            }
+        }
     }
 
-    if (!order.adminEmailSentAt && adminEmail) {
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: adminEmail,
-            subject: `New Order Received - ${order.purchaseOrderId}`,
-            html: `<h2>New Order</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Customer: ${customerEmail || order.email || "N/A"}</p><p>Total: $${Number(
-                order.totalAmount || 0
-            ).toFixed(2)}</p>`,
-        });
+    if (adminEmail) {
+        const reservation = new Date();
+        const claimedAdmin = await PurchaseOrder.findOneAndUpdate(
+            { _id: order._id, adminEmailSentAt: null },
+            { $set: { adminEmailSentAt: reservation } },
+            { new: true }
+        ).lean();
 
-        updates.adminEmailSentAt = new Date();
-        console.log(`[${logPrefix}] Admin email sent`, {
-            purchaseOrderId: order.purchaseOrderId,
-            to: adminEmail,
-        });
-    }
+        if (claimedAdmin) {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: adminEmail,
+                    subject: `New Order Received - ${order.purchaseOrderId}`,
+                    html: `<h2>New Order</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Customer: ${customerEmail || order.email || "N/A"}</p><p>Total: $${Number(
+                        order.totalAmount || 0
+                    ).toFixed(2)}</p>`,
+                });
 
-    if (Object.keys(updates).length) {
-        await PurchaseOrder.findByIdAndUpdate(order._id, { $set: updates });
+                console.log(`[${logPrefix}] Admin email sent`, {
+                    purchaseOrderId: order.purchaseOrderId,
+                    to: adminEmail,
+                });
+            } catch (err) {
+                await PurchaseOrder.updateOne(
+                    { _id: order._id, adminEmailSentAt: reservation },
+                    { $set: { adminEmailSentAt: null } }
+                );
+                throw err;
+            }
+        }
     }
+}
+
+export function sendOrderEmailsInBackground(orderLike, logPrefix = "OrderEmail") {
+    // Never block request/response lifecycle on SMTP availability.
+    Promise.resolve(sendOrderEmailsIfNeeded(orderLike, logPrefix)).catch((err) => {
+        console.error(`[${logPrefix}] Async email dispatch failed:`, err?.message || err);
+    });
 }
