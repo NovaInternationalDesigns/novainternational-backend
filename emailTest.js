@@ -1,7 +1,11 @@
-app.get("/emailTest", async (req, res) => {
-  try {
-    const nodemailer = require("nodemailer");
+// emailTest.js
+import express from "express";
+import nodemailer from "nodemailer";
 
+const router = express.Router();
+
+router.get("/", async (req, res) => {
+  try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -25,3 +29,5 @@ app.get("/emailTest", async (req, res) => {
     res.status(500).send("Email failed: " + err.message);
   }
 });
+
+export default router;
