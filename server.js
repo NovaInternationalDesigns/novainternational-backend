@@ -139,7 +139,7 @@ app.get("/", (req, res) => {
 //SERVER
 const PORT = process.env.PORT || 5000;
 
-console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("SMTP_USER:", process.env.SMTP_USER);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

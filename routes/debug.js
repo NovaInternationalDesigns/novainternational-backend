@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/smtp-test", async (req, res) => {
     try {
         const { to } = req.query;
-        const { EMAIL_USER, EMAIL_PASS, NODE_ENV } = process.env;
+        const { SMTP_USER, SMTP_PASS, NODE_ENV } = process.env;
         const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
         const SMTP_ALT_PORT = Number(process.env.SMTP_ALT_PORT || 465);
         const SMTP_HOST = process.env.SMTP_HOST || "smtp.office365.com";
@@ -18,10 +18,10 @@ router.get("/smtp-test", async (req, res) => {
         const SMTP_EXTRA_FALLBACK_HOST =
             process.env.SMTP_EXTRA_FALLBACK_HOST || "smtp-mail.outlook.com";
 
-        if (!EMAIL_USER || !EMAIL_PASS) {
+        if (!SMTP_USER || !SMTP_PASS) {
             return res.status(500).json({
                 ok: false,
-                error: "Missing EMAIL_USER or EMAIL_PASS environment variables",
+                error: "Missing SMTP_USER or SMTP_PASS environment variables",
             });
         }
 
@@ -35,7 +35,7 @@ router.get("/smtp-test", async (req, res) => {
                 port,
                 secure: port === 465,
                 requireTLS: port !== 465,
-                auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+                auth: { user: SMTP_USER, pass: SMTP_PASS },
                 tls: { minVersion: "TLSv1.2", servername: host },
                 connectionTimeout: 30000,
                 greetingTimeout: 20000,
@@ -82,7 +82,7 @@ router.get("/smtp-test", async (req, res) => {
         // Send test email if "to" is provided
         if (to) {
             await transporter.sendMail({
-                from: `"Nova International Designs" <${EMAIL_USER}>`,
+                from: `"Nova International Designs" <${SMTP_USER}>`,
                 to,
                 subject: "SMTP Test Email",
                 text: "SMTP connection is working correctly from the deployed backend.",

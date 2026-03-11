@@ -10,8 +10,8 @@ const transporter = nodemailer.createTransport({
   secure: false,
   requireTLS: true,
   auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
+    user: SMTP_USER,
+    pass: SMTP_PASS,
   },
   tls: {
     minVersion: "TLSv1.2",
@@ -32,7 +32,7 @@ transporter.verify((err, success) => {
     console.log("✅ Email service connected - SMTP ready");
   } else {
     console.error("❌ Email service failed:", err?.message || "Unknown error");
-    console.error("Check EMAIL_USER and EMAIL_PASS in .env");
+    console.error("Check SMTP_USER and SMTP_PASS in .env");
   }
 });
 
@@ -44,8 +44,8 @@ export const sendEmail = async (to, subject, content, isHtml = true) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Nova International Designs" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+      from: `"Nova International Designs" <${process.env.SMTP_USER}>`,
+      to: process.env.SMTP_USER,
       subject: "SMTP Test",
       [isHtml ? "html" : "text"]: content,
     });
@@ -120,7 +120,7 @@ export const sendPaymentConfirmationEmail = async (email, paymentData) => {
  * Admin Notification Email
  */
 export const sendAdminOrderNotification = async (orderData) => {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
   if (!adminEmail) return false;
 
   const { purchaseOrderId, customerName, email: customerEmail, totalAmount, items = [] } = orderData;

@@ -21,8 +21,8 @@ function createTransport(host) {
         greetingTimeout: 20000,
         socketTimeout: 30000,
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
         },
         logger: true,
         tls: {
@@ -41,8 +41,8 @@ function createTransportWithPort(host, port) {
         greetingTimeout: 20000,
         socketTimeout: 30000,
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
         },
         logger: true,
         tls: {
@@ -136,7 +136,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
     if (!order) return;
 
     const customerEmail = await resolveCustomerEmail(order);
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
 
     if (customerEmail) {
         const reservation = new Date();
@@ -154,7 +154,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
         if (claimedCustomer) {
             try {
                 await sendMailWithFallback({
-                    from: process.env.EMAIL_USER,
+                    from: process.env.SMTP_USER,
                     to: customerEmail,
                     subject: `Purchase Order Confirmation - ${order.purchaseOrderId}`,
                     html: `<h2>Thank you for your purchase</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Total: $${Number(
@@ -187,7 +187,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
         if (claimedAdmin) {
             try {
                 await sendMailWithFallback({
-                    from: process.env.EMAIL_USER,
+                    from: process.env.SMTP_USER,
                     to: adminEmail,
                     subject: `New Order Received - ${order.purchaseOrderId}`,
                     html: `<h2>New Order</h2><p>Order ID: ${order.purchaseOrderId}</p><p>Customer: ${customerEmail || order.email || "N/A"}</p><p>Total: $${Number(

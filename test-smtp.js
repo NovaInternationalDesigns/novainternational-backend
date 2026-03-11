@@ -18,8 +18,8 @@ const transporter = nodemailer.createTransport({
     secure: false,
     requireTLS: true,
     auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
     },
     tls: {
         minVersion: "TLSv1.2",

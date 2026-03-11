@@ -4,18 +4,18 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const { EMAIL_USER, EMAIL_PASS, ADMIN_EMAIL } = process.env;
+const { SMTP_USER, SMTP_PASS, ADMIN_EMAIL } = process.env;
 
 let transporter = null;
 
 // Only create transporter if credentials exist
-if (EMAIL_USER && EMAIL_PASS) {
+if (SMTP_USER && SMTP_PASS) {
   transporter = nodemailer.createTransport({
     host: "outlook.office365.com",
     port: 587,
     secure: false,
     requireTLS: true,
-    auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
     tls: { minVersion: "TLSv1.2" },
     connectionTimeout: 20000,
     greetingTimeout: 15000,
@@ -28,7 +28,7 @@ if (EMAIL_USER && EMAIL_PASS) {
 
   console.log("📧 Mailer initialized with Outlook SMTP.");
 } else {
-  console.warn("⚠️ EMAIL_USER or EMAIL_PASS not set. Mailer disabled.");
+  console.warn("⚠️ SMTP_USER or SMTP_PASS not set. Mailer disabled.");
 }
 
 /**
@@ -42,7 +42,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
 
   try {
     await transporter.sendMail({
-      from: `"Nova International Designs" <${EMAIL_USER}>`,
+      from: `"Nova International Designs" <${SMTP_USER}>`,
       to,
       subject,
       html,
@@ -103,7 +103,7 @@ export const sendPurchaseOrderConfirmation = async (email, orderData) => {
  * Admin notification email
  */
 export const sendAdminOrderNotification = async (orderData) => {
-  const adminEmail = ADMIN_EMAIL || EMAIL_USER;
+  const adminEmail = ADMIN_EMAIL || SMTP_USER;
   if (!adminEmail) return false;
 
   const orderId = orderData?.purchaseOrderId || "N/A";

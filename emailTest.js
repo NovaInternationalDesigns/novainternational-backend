@@ -2,7 +2,7 @@ import "dotenv/config";
 import nodemailer from "nodemailer";
 
 async function emailTest() {
-  const { EMAIL_USER, EMAIL_PASS } = process.env;
+  const { SMTP_USER, SMTP_PASS } = process.env;
   const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
   const SMTP_HOST = process.env.SMTP_HOST || "smtp.office365.com";
   const SMTP_FALLBACK_HOST = process.env.SMTP_FALLBACK_HOST || "outlook.office365.com";
@@ -10,8 +10,8 @@ async function emailTest() {
     process.env.SMTP_EXTRA_FALLBACK_HOST || "smtp-mail.outlook.com";
 
   // Validate environment variables
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    console.error("❌ Missing EMAIL_USER or EMAIL_PASS in environment variables.");
+  if (!SMTP_USER || !SMTP_PASS) {
+    console.error("❌ Missing SMTP_USER or SMTP_PASS in environment variables.");
     process.exit(1);
   }
 
@@ -26,8 +26,8 @@ async function emailTest() {
       secure: SMTP_PORT === 465,
       requireTLS: SMTP_PORT !== 465,
       auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
+        user: SMTP_USER,
+        pass: SMTP_PASS,
       },
       tls: {
         minVersion: "TLSv1.2",
