@@ -1,4 +1,4 @@
-// sendEmail.js (Resend version)
+// sendEmail.js (Resend version with enhanced logging)
 import { Resend } from "resend";
 import dotenv from "dotenv";
 
@@ -14,7 +14,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {boolean} isHtml - True for HTML, false for plain text
  */
 export async function sendEmail(to, subject, content, isHtml = true) {
-  if (!to) return false;
+  if (!to) {
+    console.warn("sendEmail called without recipient (to). Skipping.");
+    return false;
+  }
 
   try {
     const response = await resend.emails.send({
@@ -24,8 +27,12 @@ export async function sendEmail(to, subject, content, isHtml = true) {
       [isHtml ? "html" : "text"]: content,
     });
 
-    console.log(`✅ Email sent to ${to}: ${response.id}`);
-    return true;
+    // Log full response for debugging
+    console.log("✅ Email request sent to", to);
+    console.log("Resend response:", response);
+
+    // Optional: indicate success if Resend returns an ID
+    return response?.id ? true : false;
   } catch (err) {
     console.error(`❌ Failed to send email to ${to}:`, err?.message || err);
     return false;
@@ -38,7 +45,9 @@ export async function sendEmail(to, subject, content, isHtml = true) {
 export async function sendPurchaseOrderConfirmation(email, orderData) {
   const { purchaseOrderId, customerName, items = [], totalAmount, shippingInfo, notes, createdAt } = orderData;
 
-  const orderDate = createdAt ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : new Date().toLocaleDateString();
+  const orderDate = createdAt
+    ? new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    : new Date().toLocaleDateString();
 
   const itemsHTML = items
     .map(item => `
@@ -49,7 +58,9 @@ export async function sendPurchaseOrderConfirmation(email, orderData) {
         <td>${item.qty || 1}</td>
         <td>$${(item.price || 0).toFixed(2)}</td>
         <td>$${((item.qty || 1) * (item.price || 0)).toFixed(2)}</td>
-      </tr>`).join("");
+      </tr>
+    `)
+    .join("");
 
   const html = `
     <h2>Thank you for your order!</h2>
@@ -93,7 +104,10 @@ export async function sendPaymentConfirmationEmail(email, paymentData) {
  */
 export async function sendAdminOrderNotification(orderData) {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL;
-  if (!adminEmail) return false;
+  if (!adminEmail) {
+    console.warn("Admin email not set. Skipping admin notification.");
+    return false;
+  }
 
   const { purchaseOrderId, customerName, email: customerEmail, totalAmount, items = [] } = orderData;
 
@@ -109,4 +123,5 @@ export async function sendAdminOrderNotification(orderData) {
   return sendEmail(adminEmail, `New Paid Order - ${purchaseOrderId}`, html, true);
 }
 
+// Default export is the generic sendEmail function
 export default sendEmail;
