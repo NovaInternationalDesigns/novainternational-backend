@@ -6,6 +6,11 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    productId: {
+      type: String,
+      index: true,
+      sparse: true,
+    },
     price: Number,
 
     category: {
@@ -15,7 +20,7 @@ const ProductSchema = new mongoose.Schema(
     subcategory: {
     type: String,   // fans, vacuum, clutches
     },
-    colors: [String],
+    color: [String],
     slug: { type: String, unique: true },
     sizes: [String],
     minQty: Number,

@@ -1,5 +1,6 @@
 import express from "express";
 import Product from "../models/Product.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
@@ -31,7 +32,18 @@ router.get("/", async (req, res) => {
  */
 router.get("/id/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const requestedId = String(req.params.id || "").trim();
+    let product = null;
+
+    if (requestedId) {
+      if (mongoose.Types.ObjectId.isValid(requestedId)) {
+        product = await Product.findById(requestedId);
+      }
+      if (!product) {
+        product = await Product.findOne({ productId: requestedId });
+      }
+    }
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
