@@ -271,7 +271,7 @@
       "subcategory": "jute-bag",
       "slug": "jute-designer-bag",
       "minQty": 1,
-      "description": "Jute designer bag available in multiple sizes.",
+      "description": "Jute designer bag available.",
       "images": [
         "https://res.cloudinary.com/djgz1kays/image/upload/v1765384313/jute_Bag-NovaInternationalDesigns_tgz0yh.png",
         "https://res.cloudinary.com/djgz1kays/image/upload/v1773337656/Blue-Dress-5-nova-international_yannvz.jpg",
