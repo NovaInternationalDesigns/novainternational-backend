@@ -2,13 +2,6 @@ import mongoose from "mongoose";
 
 function normalizeVariantImageField(variant = {}) {
   const normalizedVariant = variant;
-  const legacyImagePublicId = normalizedVariant.images_public_id;
-
-  if (!normalizedVariant.image_public_id && legacyImagePublicId) {
-    normalizedVariant.image_public_id = legacyImagePublicId;
-  }
-
-  delete normalizedVariant.images_public_id;
 
   return normalizedVariant;
 }
@@ -19,8 +12,7 @@ const VariantSchema = new mongoose.Schema({
   color: String,
   size: String,
   price: Number,
-  image: String,
-  image_public_id: String
+  images_public_id: String
 }, { _id: false });
 
 VariantSchema.pre("validate", function(next) {
@@ -49,9 +41,6 @@ const ProductSchema = new mongoose.Schema(
     slug: {type: String,unique: true},
     sizes: [String],
     minQty: Number,
-
-    // Images (URLs for now, will migrate to public_id)
-    images: [String],
 
     // NEW: Cloudinary public IDs
     images_public_id: [String],
