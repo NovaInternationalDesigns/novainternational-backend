@@ -296,7 +296,9 @@
         "T2-2-by-Nova-International-designs-corporation_rdi86f"
       ]
     },
-      {
+    
+   
+    {
       "styleNo": "NOVAVS-102",
       "name": "Vacuum Sealing Machine",
       "productId": "NOVAVS-102",
@@ -319,7 +321,7 @@
       "description": "Interactive Digital photo frame where you can upload \nYour good times and moments with loved ones",
       "category": "Electronics",
       "subcategory": "digital-photo-frame",
-      "slug": "digital-photo-frame-2",
+      "slug": "digital-photo-frame",
       "minQty": 200,
       "images_public_id": [
         "digital-photoframe-2-by-Nova-International-designs-corporation_xj1d1g"
@@ -328,19 +330,19 @@
     
     {
       "styleNo": "NOVACF-104",
-      "name": "Campfire Light and Musical Sperakers",
+      "name": "Campfire Light And Musical Speaker",
       "productId": "NOVACF-104",
       "price": 150.99,
       "description": " High quality lights and sound effect and Good connecting ability \nCreatively Designed and Best option for outdoor camping with family and loved ones ",
       "category": "Electronics",
       "subcategory": "campfire-light",
-      "slug": "campfire-light",
+      "slug": "campfire-light-and-musical-speaker",
       "minQty": 200,
       "images_public_id": [
         "campfire-light-by-Nova-International-designs-corporation_pewbmr"
       ]
     },
-   
+    
     {
       "styleNo": "NOVAFN-106",
       "name": "Bladeless Fan",
@@ -398,14 +400,14 @@
       "styleNo": "NovaCHB1007",
       "name": "Nova Chocolate Box",
       "productId": "NovaCHB1007",
-      "price": 99.99,
+      "price": 85.99,
       "description": "Delicious Nova Chocolates are available.",
       "category": "nova-chocolates",
-      "subcategory": "chocolate-box",
-      "slug": "chocolate-box",
+      "subcategory": "nova-chocolate-box",
+      "slug": "nova-chocolate-box",
       "minQty": 200,
       "images_public_id": [
-        "choclate3-4-final_km4kzg"
+        "gift-box5-final_vohawo"
       ]
     },
     {
@@ -415,8 +417,8 @@
       "price": 9.99,
       "description": "Delicious Nova Chocolates are available.",
       "category": "nova-chocolates",
-      "subcategory": "Chocolate-bar",
-      "slug": "Chocolate-bar",
+      "subcategory": "nova-chocolate-bar",
+      "slug": "nova-chocolate-bar",
       "minQty": 200,
       "images_public_id": [
         "choclate3-4-final_km4kzg"
