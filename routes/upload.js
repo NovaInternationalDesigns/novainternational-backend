@@ -10,11 +10,17 @@ const upload = multer({ dest: "uploads/" });
 router.post("/", verifyToken, requireAdmin, upload.single("image"), async (req, res) => {
   try {
     const result = await cloudinary.uploader.upload(req.file.path);
+    console.log("✅ Cloudinary Upload Response:", {
+      public_id: result.public_id,
+      secure_url: result.secure_url,
+      full_response: result
+    });
     res.json({
       imageUrl: result.secure_url,
       public_id: result.public_id,
     });
   } catch (err) {
+    console.error("❌ Upload Error:", err);
     res.status(500).json({ message: err.message });
   }
 });

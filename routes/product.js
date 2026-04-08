@@ -74,6 +74,13 @@ router.post("/", verifyToken, requireAdmin, async (req, res) => {
       images_public_id: Array.isArray(images_public_id) ? images_public_id : [images_public_id].filter(Boolean),
     });
 
+    console.log("✅ Product Created:", {
+      productId: product._id,
+      name: product.name,
+      images_public_id: product.images_public_id,
+      raw_payload: { name, price, styleNo, images_public_id }
+    });
+
     res.status(201).json(product);
   } catch (err) {
     console.error("Create product error:", err);
@@ -168,8 +175,15 @@ router.get("/slug/:slug", async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+    console.log("✅ Product Retrieved by Slug:", {
+      slug: product.slug,
+      productId: product._id,
+      images_public_id: product.images_public_id,
+      images_count: product.images_public_id?.length || 0
+    });
     res.json(product);
   } catch (err) {
+    console.error("Get product by slug error:", err);
     res.status(500).json({ message: err.message });
   }
 });
