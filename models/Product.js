@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-function normalizeVariantImageField(variant = {}) {
-  const normalizedVariant = variant;
+// function normalizeVariantImageField(variant = {}) {
+//   const normalizedVariant = variant;
 
-  return normalizedVariant;
-}
+//   return normalizedVariant;
+// }
 
 const VariantSchema = new mongoose.Schema({
   styleNo: String,
@@ -15,16 +15,14 @@ const VariantSchema = new mongoose.Schema({
   images_public_id: String
 }, { _id: false });
 
-VariantSchema.pre("validate", function(next) {
-  normalizeVariantImageField(this);
-  next();
-});
+// VariantSchema.pre("validate", function(next) {
+//   normalizeVariantImageField(this);
+//   next();
+// });
 
 function normalizeProductVariants(_doc, ret) {
   if (Array.isArray(ret.variants)) {
-    ret.variants = ret.variants.map((variant) =>
-      normalizeVariantImageField(variant)
-    );
+    ret.variants = ret.variants.map((variant) => variant);
   }
 
   return ret;
@@ -37,6 +35,7 @@ const ProductSchema = new mongoose.Schema(
     styleNo: {type: String,required: true,unique: true},
     category: { type: String, required: true},
     subcategory: {type: String},
+    description: {type: String},
     colors: [String],
     slug: {type: String,unique: true},
     sizes: [String],

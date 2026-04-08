@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    const uri = process.env.NODE_ENV === "production"
+      ? process.env.MONGO_URI
+      : process.env.MONGO_URI_LOCAL || process.env.MONGO_URI;
+
+    await mongoose.connect(uri);
     console.log("MongoDB connected successfully");
 
     // Drop old userId_1 index from PurchaseOrderDraft collection
