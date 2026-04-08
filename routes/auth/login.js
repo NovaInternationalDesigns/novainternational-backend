@@ -1,11 +1,9 @@
-// src/routes/auth/login.js
+// routes/auth/login.js
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret";
 
 // POST /api/auth/login
 router.post("/", async (req, res) => {
@@ -14,7 +12,7 @@ router.post("/", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -22,24 +20,23 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Session setup
+    // Set user session (this creates the cookie)
     req.session.userId = user._id;
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role || "buyer",
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    req.session.user = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role || "buyer",
+    };
 
     res.json({
       message: "Login successful",
-      token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role || 'buyer' },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role || "buyer"
+      },
     });
   } catch (err) {
     console.error("Login error:", err);

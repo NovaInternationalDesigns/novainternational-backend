@@ -1,27 +1,6 @@
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret";
-
-export const getTokenFromHeader = (req) => {
-  const authHeader = req.headers.authorization || req.headers["x-access-token"];
-  if (!authHeader) return null;
-  return authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
-};
-
 export const verifyToken = async (req, res, next) => {
-  const token = getTokenFromHeader(req);
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      req.user = decoded;
-      return next();
-    } catch (err) {
-      console.error("JWT verification failed:", err);
-      return res.status(401).json({ message: "Invalid or expired token" });
-    }
-  }
-
   if (req.session?.userId) {
     try {
       const user = await User.findById(req.session.userId).select("name email role");

@@ -1,11 +1,9 @@
 import express from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import User from "../../models/User.js";
 import { sendWelcomeEmail } from "../../utils/mailer.js";
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "jwt-secret";
 const ADMIN_CREATOR_SECRET = process.env.ADMIN_CREATOR_SECRET;
 
 router.post("/", async (req, res) => {
@@ -46,17 +44,6 @@ router.post("/", async (req, res) => {
 
     req.session.userId = user._id;
 
-    const token = jwt.sign(
-      {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
     // Send welcome email asynchronously (errors won't block signup)
     sendWelcomeEmail(email, name);
 
@@ -67,7 +54,6 @@ router.post("/", async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      token,
     });
   } catch (err) {
     console.error(err);
