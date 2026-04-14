@@ -21,51 +21,30 @@ import ordersRoutes from "./routes/orders.js";
 import debugRoutes from "./routes/debug.js";
 import emailTest from "./emailTest.js";
 
-// =====================
-// ENV LOADING (FIXED)
-// =====================
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
-
+// LOAD ENV FIRST
 const env = process.env.NODE_ENV;
-const isProdLike = env === "production" || process.env.RENDER === "true";
 
-// =====================
-// STRIPE (SAFE INIT)
-// =====================
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("Missing STRIPE_SECRET_KEY");
+if (env !== "production") {
+  dotenv.config();
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// =====================
-// APP INIT
-// =====================
 const app = express();
+
+const isProdLike = env === "production" || process.env.RENDER === "true";
 
 if (isProdLike) {
   app.set("trust proxy", 1);
 }
 
-// =====================
-// DATABASE
-// =====================
-if (!process.env.MONGO_URI) {
-  throw new Error("Missing MONGO_URI");
-}
-
+// CONNECT DB
 connectDB();
 
-// =====================
-// STRIPE WEBHOOK (MUST BE FIRST)
-// =====================
+// WEBHOOK FIRST
 app.use("/api/webhook", webhookRoutes);
 
-// =====================
 // CORS
-// =====================
 const envOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -88,7 +67,6 @@ const allowOrigin = (origin) => {
 
   if (allowedOrigins.map(normalizeOrigin).includes(clean)) return true;
 
-  // Allow Netlify preview domains
   if (/^https:\/\/[a-z0-9-]+\.netlify\.app$/i.test(clean)) return true;
 
   return false;
@@ -99,7 +77,6 @@ app.use(
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
       if (allowOrigin(origin)) return callback(null, true);
-
       console.log("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     },
@@ -107,9 +84,7 @@ app.use(
   })
 );
 
-// =====================
 // SESSION
-// =====================
 app.use(
   session({
     name: "nova.sid",
@@ -126,14 +101,10 @@ app.use(
   })
 );
 
-// =====================
-// MIDDLEWARE
-// =====================
+// JSON
 app.use(express.json());
 
-// =====================
 // ROUTES
-// =====================
 app.use("/api/auth", authRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/products", productRoutes);
@@ -146,9 +117,7 @@ app.use("/api/signup", signupRouter);
 app.use("/api/debug", debugRoutes);
 app.use("/api/emailTest", emailTest);
 
-// =====================
-// HEALTH CHECK
-// =====================
+// HEALTH
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
@@ -156,16 +125,12 @@ app.get("/health", (req, res) => {
   });
 });
 
-// =====================
 // ROOT
-// =====================
 app.get("/", (req, res) => {
   res.send("Backend is running...");
 });
 
-// =====================
-// SERVER START
-// =====================
+// START
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
