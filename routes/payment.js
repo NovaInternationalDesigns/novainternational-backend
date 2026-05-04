@@ -86,6 +86,7 @@ const splitStripeLineItems = (lineItems = []) => {
 
     const price = qty > 0 ? amount / qty : 0;
     items.push({
+      styleNo: li.metadata?.styleNo || "",
       description: label || "Product",
       qty,
       price,
