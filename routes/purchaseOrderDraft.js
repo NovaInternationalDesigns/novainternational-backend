@@ -13,10 +13,12 @@ const normalizeField = (value) => {
 const matchesDraftItem = (item, { productId, color, size }) => {
   const itemProductId = normalizeField(item.productId);
   const targetProductId = normalizeField(productId);
+
   if (!targetProductId || itemProductId !== targetProductId) return false;
 
   const targetColor = normalizeField(color);
   const targetSize = normalizeField(size);
+
   const itemColor = normalizeField(item.color);
   const itemSize = normalizeField(item.size);
 
@@ -25,7 +27,6 @@ const matchesDraftItem = (item, { productId, color, size }) => {
 
   return colorMatch && sizeMatch;
 };
-
 /**
  * GET /:ownerType/:ownerId
  * Fetch or create a draft PO for a user or guest
@@ -108,7 +109,7 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
         })
       );
       if (idx > -1) {
-        merged[idx].qty = (Number(merged[idx].qty) || 0) + (Number(item.quantity) || 0);
+        merged[idx].qty = Number(item.quantity) || 0;
         if (!merged[idx].styleNo && item.styleNo) {
           merged[idx].styleNo = item.styleNo;
         }
@@ -133,7 +134,7 @@ router.post("/:ownerType/:ownerId/items", async (req, res) => {
     const updated = await PurchaseOrderDraft.findOneAndUpdate(
       { ownerType, ownerId: ownerIdObj },
       { $set: { items: merged } },
-      { new: true, upsert: true }
+      { returnDocument: "after", upsert: true }
     );
 
     res.json({ message: "Order added successfully", po: updated });
@@ -180,7 +181,7 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
       const updated = await PurchaseOrderDraft.findOneAndUpdate(
         { ownerType, ownerId: ownerIdObj },
         { $set: { items: newItems } },
-        { new: true }
+        { returnDocument: "after" }
       );
 
       return res.json({ message: "Item removed", po: updated });
@@ -190,7 +191,7 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
     const cleared = await PurchaseOrderDraft.findOneAndUpdate(
       { ownerType, ownerId: ownerIdObj },
       { $set: { items: [] } },
-      { new: true }
+      { returnDocument: "after" }
     );
     return res.json({ message: "Draft cleared", po: cleared });
   } catch (err) {
@@ -206,7 +207,7 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
 router.patch("/:ownerType/:ownerId/items", async (req, res) => {
   try {
     const { ownerType, ownerId } = req.params;
-    const { productId, color, size, qty } = req.body || {};
+    const { productId, color, size, qty, newColor, newProductId, newStyleNo, newPrice, newImage } = req.body || {};
 
     if (!['User', 'Guest'].includes(ownerType)) {
       return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
@@ -216,10 +217,7 @@ router.patch("/:ownerType/:ownerId/items", async (req, res) => {
       return res.status(400).json({ error: "productId is required" });
     }
 
-    const numericQty = Number(qty);
-    if (!Number.isFinite(numericQty) || numericQty < 1) {
-      return res.status(400).json({ error: "qty must be a number greater than or equal to 1" });
-    }
+    const isColorUpdate = newColor !== undefined;
 
     const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
       ? new mongoose.Types.ObjectId(ownerId)
@@ -234,6 +232,43 @@ router.patch("/:ownerType/:ownerId/items", async (req, res) => {
 
     if (index === -1) {
       return res.status(404).json({ error: "Item not found in draft" });
+    }
+
+    if (isColorUpdate) {
+      const existingIndex = po.items.findIndex((i) =>
+        matchesDraftItem(i, { productId, color: newColor, size })
+      );
+
+      if (existingIndex > -1 && existingIndex !== index) {
+        po.items[existingIndex].qty =
+          (Number(po.items[existingIndex].qty) || 0) +
+          (Number(po.items[index].qty) || 0);
+        po.items.splice(index, 1);
+      } else {
+        po.items[index].color = newColor || null;
+        if (newProductId !== undefined && newProductId !== null && String(newProductId).trim()) {
+          po.items[index].productId = String(newProductId).trim();
+        }
+        if (newStyleNo !== undefined) {
+          po.items[index].styleNo = newStyleNo ? String(newStyleNo).trim() : null;
+        }
+        if (newPrice !== undefined && newPrice !== null && Number.isFinite(Number(newPrice))) {
+          po.items[index].price = Number(newPrice);
+        }
+        if (newImage !== undefined) {
+          po.items[index].image = newImage || null;
+        }
+      }
+
+      po.updatedAt = new Date();
+      await po.save();
+
+      return res.json({ message: "Item color updated", po });
+    }
+
+    const numericQty = Number(qty);
+    if (!Number.isFinite(numericQty) || numericQty < 1) {
+      return res.status(400).json({ error: "qty must be a number greater than or equal to 1" });
     }
 
     po.items[index].qty = numericQty;
@@ -300,6 +335,74 @@ router.patch("/:ownerType/:ownerId/items/size", async (req, res) => {
   } catch (err) {
     console.error("Error updating item size in PO:", err);
     return res.status(500).json({ error: "Failed to update item size" });
+  }
+});
+
+/**
+ * PATCH /:ownerType/:ownerId/items/color
+ * Update color for a single item in draft PO
+ */
+router.patch("/:ownerType/:ownerId/items/color", async (req, res) => {
+  try {
+    const { ownerType, ownerId } = req.params;
+    const { productId, color, size, newColor, newProductId, newStyleNo, newPrice, newImage } = req.body || {};
+
+    if (!["User", "Guest"].includes(ownerType)) {
+      return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
+    }
+
+    if (!productId) {
+      return res.status(400).json({ error: "productId is required" });
+    }
+
+    const ownerIdObj = mongoose.Types.ObjectId.isValid(ownerId)
+      ? new mongoose.Types.ObjectId(ownerId)
+      : ownerId;
+
+    const po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
+    if (!po) return res.status(404).json({ error: "Draft not found" });
+
+    const index = po.items.findIndex((i) =>
+      matchesDraftItem(i, { productId, color, size })
+    );
+
+    if (index === -1) {
+      return res.status(404).json({ error: "Item not found in draft" });
+    }
+
+    const existingIndex = po.items.findIndex((i) =>
+      matchesDraftItem(i, { productId, color: newColor, size })
+    );
+
+    if (existingIndex > -1 && existingIndex !== index) {
+      // Merge into existing item with same productId/newColor/size
+      po.items[existingIndex].qty =
+        (Number(po.items[existingIndex].qty) || 0) +
+        (Number(po.items[index].qty) || 0);
+      po.items.splice(index, 1);
+    } else {
+      po.items[index].color = newColor || null;
+      if (newProductId !== undefined && newProductId !== null && String(newProductId).trim()) {
+        po.items[index].productId = String(newProductId).trim();
+      }
+      if (newStyleNo !== undefined) {
+        po.items[index].styleNo = newStyleNo ? String(newStyleNo).trim() : null;
+      }
+      if (newPrice !== undefined && newPrice !== null && Number.isFinite(Number(newPrice))) {
+        po.items[index].price = Number(newPrice);
+      }
+      if (newImage !== undefined) {
+        po.items[index].image = newImage || null;
+      }
+    }
+
+    po.updatedAt = new Date();
+    await po.save();
+
+    return res.json({ message: "Item color updated", po });
+  } catch (err) {
+    console.error("Error updating item color in PO:", err);
+    return res.status(500).json({ error: "Failed to update item color" });
   }
 });
 

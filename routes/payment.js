@@ -23,6 +23,22 @@ console.log(
     : "NOT FOUND"
 );
 
+// Retry utility for Stripe rate limits
+const retryStripe = async (fn, retries = 3, delay = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (err.statusCode === 429 && i < retries - 1) {
+        console.log(`Stripe rate limit hit, retrying in ${delay * (2 ** i)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+      } else {
+        throw err;
+      }
+    }
+  }
+};
+
 // UTILITY FUNCTIONS
 
 async function resolveCustomerEmail(order, ownerType, ownerId) {
@@ -268,15 +284,15 @@ router.post("/create-checkout-session", async (req, res) => {
       ...(guestSessionId && { guestSessionId }),
     };
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await retryStripe(() => stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
       success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/checkout`,
       metadata,
-      customer_email: customerEmail,
-    });
+      // customer_email: customerEmail, // Commented out to avoid rate-limited verification
+    }));
 
     console.log("Stripe session created. Live mode:", session.livemode);
 
