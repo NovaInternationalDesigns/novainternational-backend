@@ -219,6 +219,7 @@ router.post("/create-checkout-session", async (req, res) => {
       guestSessionId,
     } = req.body;
 
+    const user = ownerType === "User" && ownerId ? await User.findById(ownerId).select("name email") : null;
     const orderId = orderIdRaw || null;
     const effectivePurchaseOrderId = purchaseOrderId || crypto.randomBytes(16).toString("hex");
 
@@ -284,15 +285,37 @@ router.post("/create-checkout-session", async (req, res) => {
       ...(guestSessionId && { guestSessionId }),
     };
 
-    const session = await retryStripe(() => stripe.checkout.sessions.create({
+    const customer = await stripe.customers.create({
+      email: customerEmail,
+      name: user?.name || "Guest User",
+    });
+
+    const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
+
+      customer: customer.id,
+
+      customer_update: {
+        name: "auto",
+        address: "auto",
+      },
+
+      billing_address_collection: "required",
+
+      shipping_address_collection: {
+        allowed_countries: ["US"],
+      },
+
+      metadata: {
+        ...metadata,
+        customerName: user?.name || "Guest User",
+      },
+
       success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/checkout`,
-      metadata,
-      // customer_email: customerEmail, // Commented out to avoid rate-limited verification
-    }));
+    });
 
     console.log("Stripe session created. Live mode:", session.livemode);
 
