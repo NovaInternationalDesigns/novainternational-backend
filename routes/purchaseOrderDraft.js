@@ -207,7 +207,20 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
 router.patch("/:ownerType/:ownerId/items", async (req, res) => {
   try {
     const { ownerType, ownerId } = req.params;
-    const { productId, color, size, qty, newColor, newProductId, newStyleNo, newPrice, newImage } = req.body || {};
+    const {
+      productId,
+      color,
+      size,
+      qty,
+      newColor,
+      newSize,
+      newProductId,
+      newStyleNo,
+      newPrice,
+      newName,
+      newDescription,
+      newImage,
+    } = req.body || {};
 
     if (!['User', 'Guest'].includes(ownerType)) {
       return res.status(400).json({ error: "ownerType must be 'User' or 'Guest'" });
@@ -226,6 +239,22 @@ router.patch("/:ownerType/:ownerId/items", async (req, res) => {
     const po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
     if (!po) return res.status(404).json({ error: "Draft not found" });
 
+    console.log("PATCH /items request", {
+      ownerType,
+      ownerId: ownerIdObj,
+      productId,
+      color,
+      size,
+      qty,
+      newColor,
+      newSize,
+      newProductId,
+      newStyleNo,
+      newName,
+      newDescription,
+      newPrice,
+    });
+
     const index = po.items.findIndex((i) =>
       matchesDraftItem(i, { productId, color, size })
     );
@@ -235,22 +264,55 @@ router.patch("/:ownerType/:ownerId/items", async (req, res) => {
     }
 
     if (isColorUpdate) {
+      const targetSize = newSize !== undefined ? newSize : size;
       const existingIndex = po.items.findIndex((i) =>
-        matchesDraftItem(i, { productId, color: newColor, size })
+        matchesDraftItem(i, { productId, color: newColor, size: targetSize })
       );
 
       if (existingIndex > -1 && existingIndex !== index) {
-        po.items[existingIndex].qty =
-          (Number(po.items[existingIndex].qty) || 0) +
+        const target = po.items[existingIndex];
+        target.qty =
+          (Number(target.qty) || 0) +
           (Number(po.items[index].qty) || 0);
+        if (newProductId !== undefined && newProductId !== null && String(newProductId).trim()) {
+          target.productId = String(newProductId).trim();
+        }
+        if (newStyleNo !== undefined) {
+          target.styleNo = newStyleNo ? String(newStyleNo).trim() : target.styleNo;
+        }
+        if (newName !== undefined) {
+          target.name = newName || target.name;
+        }
+        if (newDescription !== undefined) {
+          target.description = newDescription || target.description;
+        }
+        if (newPrice !== undefined && newPrice !== null && Number.isFinite(Number(newPrice))) {
+          target.price = Number(newPrice);
+        }
+        if (newImage !== undefined) {
+          target.image = newImage || target.image;
+        }
+        if (newSize !== undefined) {
+          target.size = newSize || null;
+        }
+        target.color = newColor || null;
         po.items.splice(index, 1);
       } else {
         po.items[index].color = newColor || null;
+        if (newSize !== undefined) {
+          po.items[index].size = newSize || null;
+        }
         if (newProductId !== undefined && newProductId !== null && String(newProductId).trim()) {
           po.items[index].productId = String(newProductId).trim();
         }
         if (newStyleNo !== undefined) {
           po.items[index].styleNo = newStyleNo ? String(newStyleNo).trim() : null;
+        }
+        if (newName !== undefined) {
+          po.items[index].name = newName || po.items[index].name;
+        }
+        if (newDescription !== undefined) {
+          po.items[index].description = newDescription || po.items[index].description;
         }
         if (newPrice !== undefined && newPrice !== null && Number.isFinite(Number(newPrice))) {
           po.items[index].price = Number(newPrice);
