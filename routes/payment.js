@@ -209,34 +209,36 @@ router.post("/create-checkout-session", async (req, res) => {
       purchaseOrderId,
       items,
       shippingInfo,
-      subtotal,
-      shippingCost,
       estimatedTax,
-      totalAmount,
-      form,
       ownerType,
       ownerId,
       guestSessionId,
+      form,
     } = req.body;
 
-    const user = ownerType === "User" && ownerId ? await User.findById(ownerId).select("name email") : null;
-    const orderId = orderIdRaw || null;
-    const effectivePurchaseOrderId = purchaseOrderId || crypto.randomBytes(16).toString("hex");
-
-    let dbCustomerEmail;
-    if (orderId) {
-      const orderFromDb = /^[a-fA-F0-9]{24}$/.test(orderId)
-        ? await PurchaseOrder.findById(orderId)
-        : await PurchaseOrder.findOne({ purchaseOrderId: orderId });
-      if (!orderFromDb) return res.status(404).json({ error: "Order not found" });
-      dbCustomerEmail = await resolveCustomerEmail(orderFromDb, ownerType, ownerId);
+    // 1️⃣ Resolve customer email
+    let dbCustomerEmail = null;
+    if (orderIdRaw) {
+      const orderFromDb = /^[a-fA-F0-9]{24}$/.test(orderIdRaw)
+        ? await PurchaseOrder.findById(orderIdRaw)
+        : await PurchaseOrder.findOne({ purchaseOrderId: orderIdRaw });
+      dbCustomerEmail = orderFromDb
+        ? await resolveCustomerEmail(orderFromDb, ownerType, ownerId)
+        : null;
     }
 
-    const customerEmail = form?.email || shippingInfo?.email || dbCustomerEmail;
-    if (!customerEmail) return res.status(400).json({ error: "Customer email is required" });
+    const customerEmail =
+      form?.email?.trim() ||
+      shippingInfo?.email?.trim() ||
+      dbCustomerEmail?.trim();
 
-    if (!items?.length) return res.status(400).json({ error: "Items are required to create session" });
+    if (!customerEmail)
+      return res.status(400).json({ error: "Customer email is required" });
 
+    if (!items?.length)
+      return res.status(400).json({ error: "Items are required to create session" });
+
+    // 2️⃣ Build line_items for Stripe
     const line_items = items.map((it) => ({
       price_data: {
         currency: "usd",
@@ -246,12 +248,13 @@ router.post("/create-checkout-session", async (req, res) => {
       quantity: Math.max(1, Number(it.qty || it.quantity || 1)),
     }));
 
-    const computedSubtotal = items.reduce(
-      (sum, it) => sum + Math.max(1, Number(it.qty || it.quantity || 1)) * Number(it.price || 0),
+    // 3️⃣ Add estimated tax and processing fee if present
+    const subtotal = items.reduce(
+      (sum, it) => sum + Number(it.qty || it.quantity || 1) * Number(it.price || 0),
       0
     );
 
-    const processingFee = computedSubtotal > 0 ? computedSubtotal * PROCESSING_FEE_RATE : 0;
+    const processingFee = subtotal * PROCESSING_FEE_RATE;
 
     if (estimatedTax && estimatedTax > 0) {
       line_items.push({
@@ -275,52 +278,49 @@ router.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    let frontendUrl = req.headers.origin || process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    // 4️⃣ Reuse existing Stripe customer if available
+    const existingCustomers = await stripe.customers.list({
+      email: customerEmail,
+      limit: 1,
+    });
+
+    const customerId =
+      existingCustomers.data[0]?.id ||
+      (await stripe.customers.create({
+        email: customerEmail,
+        name: shippingInfo?.firstName
+          ? `${shippingInfo.firstName} ${shippingInfo.lastName || ""}`
+          : "Guest User",
+      })).id;
+
+    // 5️⃣ Create checkout session with retry for 429
+    const frontendUrl = req.headers.origin || process.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
     const metadata = {
-      purchaseOrderId: effectivePurchaseOrderId,
-      ...(orderId && { orderId }),
+      purchaseOrderId: purchaseOrderId || crypto.randomBytes(16).toString("hex"),
+      ...(orderIdRaw && { orderId: orderIdRaw }),
       ...(ownerType && { ownerType }),
       ...(ownerId && { ownerId }),
       ...(guestSessionId && { guestSessionId }),
     };
 
-    const customer = await stripe.customers.create({
-      email: customerEmail,
-      name: user?.name || "Guest User",
-    });
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      line_items,
-
-      customer: customer.id,
-
-      customer_update: {
-        name: "auto",
-        address: "auto",
-      },
-
-      billing_address_collection: "required",
-
-      shipping_address_collection: {
-        allowed_countries: ["US"],
-      },
-
-      metadata: {
-        ...metadata,
-        customerName: user?.name || "Guest User",
-      },
-
-      success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontendUrl}/checkout`,
-    });
+    const session = await retryStripe(() =>
+      stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items,
+        customer: customerId,
+        billing_address_collection: "required",
+        shipping_address_collection: { allowed_countries: ["US", "CA", "GB", "AU", "IN"] },
+        metadata: { ...metadata, customerName: shippingInfo?.firstName || "Guest User" },
+        success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontendUrl}/checkout`,
+      })
+    );
 
     console.log("Stripe session created. Live mode:", session.livemode);
 
-    res.json({ url: session.url, purchaseOrderId: effectivePurchaseOrderId });
-
+    res.json({ url: session.url, purchaseOrderId: metadata.purchaseOrderId });
   } catch (err) {
     console.error("Stripe session error:", err);
     res.status(500).json({ error: "Failed to create checkout session", details: err.message });
