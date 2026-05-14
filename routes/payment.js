@@ -1,4 +1,3 @@
-// payment.js (Stripe-friendly, Resend email ready)
 import express from "express";
 import Stripe from "stripe";
 import crypto from "crypto";
@@ -23,15 +22,16 @@ console.log(
     : "NOT FOUND"
 );
 
-// Retry utility for Stripe rate limits
+/* ---------------------------
+   RETRY UTILITY
+----------------------------*/
 const retryStripe = async (fn, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (err) {
       if (err.statusCode === 429 && i < retries - 1) {
-        console.log(`Stripe rate limit hit, retrying in ${delay * (2 ** i)}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+        await new Promise((r) => setTimeout(r, delay * 2 ** i));
       } else {
         throw err;
       }
@@ -39,8 +39,9 @@ const retryStripe = async (fn, retries = 3, delay = 1000) => {
   }
 };
 
-// UTILITY FUNCTIONS
-
+/* ---------------------------
+   HELPERS
+----------------------------*/
 async function resolveCustomerEmail(order, ownerType, ownerId) {
   if (order?.email) return order.email;
 
@@ -48,7 +49,7 @@ async function resolveCustomerEmail(order, ownerType, ownerId) {
     if (order.ownerType === "User") {
       const user = await User.findById(order.ownerId).select("email").lean();
       if (user?.email) return user.email;
-    } else if (order.ownerType === "Guest") {
+    } else {
       const guest = await Guest.findById(order.ownerId).select("email").lean();
       if (guest?.email) return guest.email;
     }
@@ -58,7 +59,7 @@ async function resolveCustomerEmail(order, ownerType, ownerId) {
     if (ownerType === "User") {
       const user = await User.findById(ownerId).select("email").lean();
       if (user?.email) return user.email;
-    } else if (ownerType === "Guest") {
+    } else {
       const guest = await Guest.findById(ownerId).select("email").lean();
       if (guest?.email) return guest.email;
     }
@@ -68,52 +69,64 @@ async function resolveCustomerEmail(order, ownerType, ownerId) {
 }
 
 const toObjectId = (id) =>
-  mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
+  mongoose.Types.ObjectId.isValid(id)
+    ? new mongoose.Types.ObjectId(id)
+    : id;
 
 const buildFallbackPurchaseOrderId = (sessionId) => {
   const tail =
-    String(sessionId || "").slice(-8) || crypto.randomBytes(4).toString("hex");
+    String(sessionId || "").slice(-8) ||
+    crypto.randomBytes(4).toString("hex");
   return `PO-${Date.now()}-${tail}`;
 };
 
+/* ---------------------------
+   STRIPE LINE ITEM PARSER
+----------------------------*/
 const splitStripeLineItems = (lineItems = []) => {
   const items = [];
   let shippingCost = 0;
   let estimatedTax = 0;
-  let Processing_Fee = 0;
+  let processingFee = 0;
 
   for (const li of lineItems) {
     const label = String(li.description || "").trim();
-    const amount = Number(li.amount_total || li.amount_subtotal || 0) / 100;
+    const amount =
+      Number(li.amount_total || li.amount_subtotal || 0) / 100;
     const qty = Math.max(1, Number(li.quantity || 1));
 
     if (label === "Shipping") {
       shippingCost += amount;
       continue;
     }
+
     if (label === "Estimated Tax") {
       estimatedTax += amount;
       continue;
     }
+
     if (label === "Processing Fee") {
-      Processing_Fee += amount;
+      processingFee += amount;
       continue;
     }
 
-    const price = qty > 0 ? amount / qty : 0;
     items.push({
       styleNo: li.metadata?.styleNo || "",
       description: label || "Product",
       qty,
-      price,
+      price: qty > 0 ? amount / qty : 0,
       total: amount,
     });
   }
 
-  const subtotal = items.reduce((sum, item) => sum + Number(item.total || 0), 0);
-  return { items, subtotal, shippingCost, estimatedTax, Processing_Fee };
+  const subtotal = items.reduce((sum, i) => sum + i.total, 0);
+
+  return { items, subtotal, shippingCost, estimatedTax, processingFee };
 };
 
+/* ---------------------------
+   OWNER RESOLUTION
+----------------------------*/
 async function resolveOwnerFromMetadata(metadata = {}) {
   let ownerType = metadata.ownerType || null;
   let ownerId = metadata.ownerId || null;
@@ -122,6 +135,7 @@ async function resolveOwnerFromMetadata(metadata = {}) {
     const draft = await PurchaseOrderDraft.findOne({
       purchaseOrderId: metadata.purchaseOrderId,
     }).lean();
+
     if (draft) {
       ownerType = ownerType || draft.ownerType;
       ownerId = ownerId || String(draft.ownerId);
@@ -131,30 +145,54 @@ async function resolveOwnerFromMetadata(metadata = {}) {
   return { ownerType, ownerId };
 }
 
-// CREATE OR RECONCILE ORDER FROM STRIPE SESSION
+/* ---------------------------
+   CREATE ORDER FROM SESSION
+----------------------------*/
 async function createOrderFromStripeSession(sessionId) {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
-  console.log("Create order - session live mode:", session.livemode);
+
   if (!session) return null;
 
-  const existingBySession = await PurchaseOrder.findOne({ stripeSessionId: session.id });
-  if (existingBySession) return existingBySession;
+  const existing = await PurchaseOrder.findOne({
+    stripeSessionId: session.id,
+  });
+
+  if (existing) return existing;
 
   const metadata = session.metadata || {};
-  const { ownerType, ownerId } = await resolveOwnerFromMetadata(metadata);
+  const { ownerType, ownerId } =
+    await resolveOwnerFromMetadata(metadata);
+
   if (!ownerType || !ownerId) return null;
 
-  const lineItemsRes = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
-  const { items, subtotal, shippingCost, estimatedTax, Processing_Fee } = splitStripeLineItems(lineItemsRes.data);
+  // FIX: safe parsing
+  let items = [];
+  try {
+    items = metadata.items ? JSON.parse(metadata.items) : [];
+  } catch {
+    items = [];
+  }
 
   if (!items.length) return null;
 
-  const basePurchaseOrderId = metadata.purchaseOrderId || buildFallbackPurchaseOrderId(session.id);
-  let purchaseOrderId = basePurchaseOrderId;
-  const alreadyUsed = await PurchaseOrder.findOne({ purchaseOrderId }).lean();
-  if (alreadyUsed) purchaseOrderId = buildFallbackPurchaseOrderId(session.id);
+  const subtotal = items.reduce(
+    (sum, it) =>
+      sum + Number(it.qty || 1) * Number(it.price || 0),
+    0
+  );
 
-  const customerEmail = session.customer_email || session.customer_details?.email || metadata.customer_email || "";
+  const shippingCost = 0;
+  const estimatedTax = 0;
+  const processingFee = subtotal * PROCESSING_FEE_RATE;
+
+  const purchaseOrderId =
+    metadata.purchaseOrderId ||
+    buildFallbackPurchaseOrderId(session.id);
+
+  const customerEmail =
+    session.customer_email ||
+    session.customer_details?.email ||
+    "";
 
   const order = await PurchaseOrder.create({
     purchaseOrderId,
@@ -166,21 +204,25 @@ async function createOrderFromStripeSession(sessionId) {
     subtotal,
     shippingCost,
     estimatedTax,
-    Processing_Fee,
+    Processing_Fee: processingFee,
     totalAmount: Number(session.amount_total || 0) / 100,
-    paymentStatus: session.payment_status === "paid" ? "paid" : "pending",
+    paymentStatus:
+      session.payment_status === "paid" ? "paid" : "pending",
     shippingInfo: {
-      name: session.customer_details?.name || metadata.shipping_name || "",
-      address: session.customer_details?.address?.line1 || metadata.shipping_address || "",
-      city: session.customer_details?.address?.city || metadata.shipping_city || "",
-      postalCode: session.customer_details?.address?.postal_code || metadata.shipping_postal_code || "",
-      country: session.customer_details?.address?.country || metadata.shipping_country || "",
+      name:
+        session.customer_details?.name || metadata.shipping_name || "",
+      address:
+        session.customer_details?.address?.line1 || "",
+      city:
+        session.customer_details?.address?.city || "",
+      postalCode:
+        session.customer_details?.address?.postal_code || "",
+      country:
+        session.customer_details?.address?.country || "",
     },
   });
 
-  // ✅ FIX: clear cart when payment is successful
   if (order.paymentStatus === "paid") {
-
     await PurchaseOrderDraft.deleteOne({
       ownerId: order.ownerId,
       ownerType: order.ownerType,
@@ -188,10 +230,12 @@ async function createOrderFromStripeSession(sessionId) {
 
     (async () => {
       try {
-        if (customerEmail) await sendPurchaseOrderConfirmation(customerEmail, order);
+        if (customerEmail)
+          await sendPurchaseOrderConfirmation(customerEmail, order);
+
         await sendAdminOrderNotification(order);
-      } catch (emailErr) {
-        console.error("Resend email error:", emailErr?.message || emailErr);
+      } catch (e) {
+        console.error("Email error:", e?.message || e);
       }
     })();
   }
@@ -199,9 +243,9 @@ async function createOrderFromStripeSession(sessionId) {
   return order;
 }
 
-// ROUTES
-
-// CREATE STRIPE CHECKOUT SESSION
+/* ---------------------------
+   CREATE CHECKOUT SESSION
+----------------------------*/
 router.post("/create-checkout-session", async (req, res) => {
   try {
     const {
@@ -216,14 +260,21 @@ router.post("/create-checkout-session", async (req, res) => {
       form,
     } = req.body;
 
-    // 1️⃣ Resolve customer email
     let dbCustomerEmail = null;
+
     if (orderIdRaw) {
       const orderFromDb = /^[a-fA-F0-9]{24}$/.test(orderIdRaw)
         ? await PurchaseOrder.findById(orderIdRaw)
-        : await PurchaseOrder.findOne({ purchaseOrderId: orderIdRaw });
+        : await PurchaseOrder.findOne({
+            purchaseOrderId: orderIdRaw,
+          });
+
       dbCustomerEmail = orderFromDb
-        ? await resolveCustomerEmail(orderFromDb, ownerType, ownerId)
+        ? await resolveCustomerEmail(
+            orderFromDb,
+            ownerType,
+            ownerId
+          )
         : null;
     }
 
@@ -233,30 +284,37 @@ router.post("/create-checkout-session", async (req, res) => {
       dbCustomerEmail?.trim();
 
     if (!customerEmail)
-      return res.status(400).json({ error: "Customer email is required" });
+      return res.status(400).json({
+        error: "Customer email is required",
+      });
 
     if (!items?.length)
-      return res.status(400).json({ error: "Items are required to create session" });
+      return res.status(400).json({
+        error: "Items required",
+      });
 
-    // 2️⃣ Build line_items for Stripe
     const line_items = items.map((it) => ({
       price_data: {
         currency: "usd",
-        product_data: { name: it.name || it.description || "Product" },
+        product_data: {
+          name: it.name || it.description || "Product",
+        },
         unit_amount: Math.round((it.price || 0) * 100),
       },
-      quantity: Math.max(1, Number(it.qty || it.quantity || 1)),
+      quantity: Math.max(1, it.qty || 1),
     }));
 
-    // 3️⃣ Add estimated tax and processing fee if present
     const subtotal = items.reduce(
-      (sum, it) => sum + Number(it.qty || it.quantity || 1) * Number(it.price || 0),
+      (s, it) =>
+        s +
+        Number(it.qty || 1) * Number(it.price || 0),
       0
     );
 
-    const processingFee = subtotal * PROCESSING_FEE_RATE;
+    const processingFee =
+      subtotal * PROCESSING_FEE_RATE;
 
-    if (estimatedTax && estimatedTax > 0) {
+    if (estimatedTax) {
       line_items.push({
         price_data: {
           currency: "usd",
@@ -267,7 +325,7 @@ router.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    if (processingFee > 0) {
+    if (processingFee) {
       line_items.push({
         price_data: {
           currency: "usd",
@@ -278,30 +336,35 @@ router.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    // 4️⃣ Reuse existing Stripe customer if available
-    const existingCustomers = await stripe.customers.list({
+    const customers = await stripe.customers.list({
       email: customerEmail,
       limit: 1,
     });
 
     const customerId =
-      existingCustomers.data[0]?.id ||
-      (await stripe.customers.create({
-        email: customerEmail,
-        name: shippingInfo?.firstName
-          ? `${shippingInfo.firstName} ${shippingInfo.lastName || ""}`
-          : "Guest User",
-      })).id;
+      customers.data[0]?.id ||
+      (
+        await stripe.customers.create({
+          email: customerEmail,
+          name:
+            shippingInfo?.firstName || "Guest User",
+        })
+      ).id;
 
-    // 5️⃣ Create checkout session with retry for 429
-    const frontendUrl = req.headers.origin || process.env.VITE_FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl =
+      req.headers.origin ||
+      process.env.VITE_FRONTEND_URL ||
+      "http://localhost:5173";
 
     const metadata = {
-      purchaseOrderId: purchaseOrderId || crypto.randomBytes(16).toString("hex"),
-      ...(orderIdRaw && { orderId: orderIdRaw }),
-      ...(ownerType && { ownerType }),
-      ...(ownerId && { ownerId }),
-      ...(guestSessionId && { guestSessionId }),
+      purchaseOrderId:
+        purchaseOrderId ||
+        crypto.randomBytes(16).toString("hex"),
+      orderId: orderIdRaw,
+      ownerType,
+      ownerId,
+      guestSessionId,
+      items: JSON.stringify(items),
     };
 
     const session = await retryStripe(() =>
@@ -311,50 +374,53 @@ router.post("/create-checkout-session", async (req, res) => {
         line_items,
         customer: customerId,
         billing_address_collection: "required",
-        shipping_address_collection: { allowed_countries: ["US", "CA", "GB", "AU", "IN"] },
-        metadata: { ...metadata, customerName: shippingInfo?.firstName || "Guest User" },
+        shipping_address_collection: {
+          allowed_countries: [
+            "US",
+            "CA",
+            "GB",
+            "AU",
+            "IN",
+          ],
+        },
+        metadata,
         success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${frontendUrl}/checkout`,
       })
     );
 
-    console.log("Stripe session created. Live mode:", session.livemode);
-
-    res.json({ url: session.url, purchaseOrderId: metadata.purchaseOrderId });
+    res.json({
+      url: session.url,
+      purchaseOrderId: metadata.purchaseOrderId,
+    });
   } catch (err) {
-    console.error("Stripe session error:", err);
-    res.status(500).json({ error: "Failed to create checkout session", details: err.message });
+    console.error(err);
+    res.status(500).json({
+      error: "Checkout failed",
+      details: err.message,
+    });
   }
 });
 
-// GET ORDER BY STRIPE SESSION (unchanged except your fix already added)
+/* ---------------------------
+   GET ORDER
+----------------------------*/
 router.get("/order/:sessionId", async (req, res) => {
   try {
     const { sessionId } = req.params;
 
-    const existing = await PurchaseOrder.findOne({ stripeSessionId: sessionId });
+    const existing = await PurchaseOrder.findOne({
+      stripeSessionId: sessionId,
+    });
 
     if (existing) {
-      if (existing.paymentStatus !== "paid") {
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-        if (session?.payment_status === "paid") {
-          existing.paymentStatus = "paid";
-          await existing.save();
-
-          await PurchaseOrderDraft.deleteOne({
-            ownerId: existing.ownerId,
-            ownerType: existing.ownerType,
-          });
-        }
-      }
-
       return res.json(existing);
     }
 
-    const order = await createOrderFromStripeSession(sessionId);
-    return res.json(order);
+    const order =
+      await createOrderFromStripeSession(sessionId);
 
+    return res.json(order);
   } catch (err) {
     res.status(500).json({ error: "Failed" });
   }
