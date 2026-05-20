@@ -7,13 +7,19 @@ const router = express.Router();
 // GET /api/auth/me
 router.get("/", async (req, res) => {
   if (!req.session.userId) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(200).json({
+      user: null,
+      authenticated: false,
+    });
   }
 
   try {
     const user = await User.findById(req.session.userId).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(200).json({
+        user: null,
+        authenticated: false,
+      });
     }
 
     res.json({
