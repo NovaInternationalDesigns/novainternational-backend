@@ -15,6 +15,10 @@ const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PROCESSING_FEE_RATE = 0.05;
 
+// In-memory cache for checkout items (keyed by purchaseOrderId, expires after 24 hours)
+const checkoutItemsCache = new Map();
+const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
 console.log(
   "Stripe key loaded:",
   process.env.STRIPE_SECRET_KEY
@@ -165,12 +169,31 @@ async function createOrderFromStripeSession(sessionId) {
 
   if (!ownerType || !ownerId) return null;
 
-  // FIX: safe parsing
+  // Retrieve items from cache first (avoids Stripe metadata size limit)
   let items = [];
-  try {
-    items = metadata.items ? JSON.parse(metadata.items) : [];
-  } catch {
-    items = [];
+  
+  if (metadata.purchaseOrderId && checkoutItemsCache.has(metadata.purchaseOrderId)) {
+    items = checkoutItemsCache.get(metadata.purchaseOrderId);
+  }
+
+  // Fall back to draft if available
+  if (!items.length && metadata.purchaseOrderId) {
+    const draft = await PurchaseOrderDraft.findOne({
+      purchaseOrderId: metadata.purchaseOrderId,
+    }).lean();
+    
+    if (draft?.items?.length) {
+      items = draft.items;
+    }
+  }
+
+  // Fall back to metadata as last resort (for backward compatibility)
+  if (!items.length && metadata.items) {
+    try {
+      items = JSON.parse(metadata.items);
+    } catch {
+      items = [];
+    }
   }
 
   if (!items.length) return null;
@@ -356,15 +379,45 @@ router.post("/create-checkout-session", async (req, res) => {
       process.env.VITE_FRONTEND_URL ||
       "http://localhost:5173";
 
+    // Store items in cache to avoid Stripe's 500-byte metadata limit
+    const generatedPurchaseOrderId =
+      purchaseOrderId ||
+      crypto.randomBytes(16).toString("hex");
+
+    // Cache items for retrieval after payment
+    checkoutItemsCache.set(generatedPurchaseOrderId, items);
+    
+    // Schedule cache cleanup after expiry
+    setTimeout(() => {
+      checkoutItemsCache.delete(generatedPurchaseOrderId);
+    }, CACHE_EXPIRY);
+
+    // Also save to draft if owner info is available (for persistent storage)
+    if (ownerType && ownerId) {
+      try {
+        await PurchaseOrderDraft.findOneAndUpdate(
+          { purchaseOrderId: generatedPurchaseOrderId },
+          {
+            purchaseOrderId: generatedPurchaseOrderId,
+            ownerType,
+            ownerId: toObjectId(ownerId),
+            items,
+            shippingInfo,
+            estimatedTax,
+          },
+          { upsert: true, new: true }
+        );
+      } catch (draftErr) {
+        console.warn("Failed to save draft (non-critical):", draftErr.message);
+      }
+    }
+
     const metadata = {
-      purchaseOrderId:
-        purchaseOrderId ||
-        crypto.randomBytes(16).toString("hex"),
+      purchaseOrderId: generatedPurchaseOrderId,
       orderId: orderIdRaw,
-      ownerType,
-      ownerId,
-      guestSessionId,
-      items: JSON.stringify(items),
+      ownerType: ownerType || null,
+      ownerId: ownerId || null,
+      guestSessionId: guestSessionId || null,
     };
 
     const session = await retryStripe(() =>
@@ -391,13 +444,14 @@ router.post("/create-checkout-session", async (req, res) => {
 
     res.json({
       url: session.url,
-      purchaseOrderId: metadata.purchaseOrderId,
+      purchaseOrderId: generatedPurchaseOrderId,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Create checkout session error:", err);
     res.status(500).json({
       error: "Checkout failed",
       details: err.message,
+      stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
     });
   }
 });
