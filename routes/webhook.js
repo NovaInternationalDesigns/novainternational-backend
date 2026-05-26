@@ -9,13 +9,13 @@ const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // ----------------------
-// Config
+// CONFIG
 // ----------------------
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1500;
 
 // ----------------------
-// Logger
+// LOGGING
 // ----------------------
 const log = (stage, data = {}) => {
   console.log(`[StripeWebhook:${stage}]`, {
@@ -25,7 +25,7 @@ const log = (stage, data = {}) => {
 };
 
 // ----------------------
-// Helpers
+// HELPERS
 // ----------------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -35,7 +35,7 @@ const buildFallbackPurchaseOrderId = (sessionId) => {
 };
 
 // ----------------------
-// Safe Order Fetch (with retry)
+// SAFE ORDER FETCH (RETRY)
 // ----------------------
 const findOrderWithRetry = async (sessionId) => {
   for (let i = 0; i < MAX_RETRIES; i++) {
@@ -52,7 +52,7 @@ const findOrderWithRetry = async (sessionId) => {
 };
 
 // ----------------------
-// Webhook Route
+// WEBHOOK ROUTE
 // ----------------------
 router.post(
   "/",
@@ -63,7 +63,7 @@ router.post(
     let event;
 
     // ----------------------
-    // Verify Stripe Signature
+    // VERIFY STRIPE SIGNATURE
     // ----------------------
     try {
       event = stripe.webhooks.constructEvent(
@@ -77,20 +77,27 @@ router.post(
         id: event.id,
       });
     } catch (err) {
-      console.error("[Webhook] Signature verification failed:", err.message);
+      console.error("[Webhook] Signature error:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     try {
       // =========================================================
-      // 1. CHECKOUT SESSION COMPLETED (MAIN FLOW)
+      // 1. CHECKOUT SESSION COMPLETED
       // =========================================================
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
 
+        log("checkout_session_received", {
+          sessionId: session.id,
+          email: session.customer_email,
+        });
+
         let order = await findOrderWithRetry(session.id);
 
-        // If order doesn't exist yet, create fallback minimal record
+        // ----------------------
+        // CREATE ORDER IF MISSING
+        // ----------------------
         if (!order) {
           log("order_not_found_creating", { sessionId: session.id });
 
@@ -120,24 +127,39 @@ router.post(
             paymentStatus: "paid",
           });
         } else {
-          // update payment status safely
           order.paymentStatus = "paid";
           await order.save();
         }
 
-        log("order_paid", {
+        log("order_marked_paid", {
           sessionId: session.id,
           orderId: order.purchaseOrderId,
+          email: order.email,
         });
 
         // ----------------------
-        // Send Emails (IDEMPOTENT)
+        // EMAIL TRIGGER (SAFE)
         // ----------------------
-        await sendOrderEmailsIfNeeded(order, "Webhook");
+        try {
+          if (!order.email) {
+            log("missing_email_skip_send", {
+              orderId: order.purchaseOrderId,
+            });
+          } else {
+            await sendOrderEmailsIfNeeded(order, "Webhook");
+
+            log("email_triggered", {
+              orderId: order.purchaseOrderId,
+              email: order.email,
+            });
+          }
+        } catch (emailErr) {
+          console.error("[Webhook] Email failed:", emailErr);
+        }
       }
 
       // =========================================================
-      // 2. PAYMENT INTENT SUCCESS (fallback path)
+      // 2. PAYMENT INTENT SUCCEEDED (FALLBACK)
       // =========================================================
       if (event.type === "payment_intent.succeeded") {
         const paymentIntent = event.data.object;
@@ -145,14 +167,14 @@ router.post(
         const sessionId = paymentIntent.metadata?.sessionId;
 
         if (!sessionId) {
-          log("missing_sessionId_in_payment_intent");
+          log("missing_session_id_payment_intent");
           return res.json({ received: true });
         }
 
         let order = await findOrderWithRetry(sessionId);
 
         if (!order) {
-          log("payment_intent_no_order_found", { sessionId });
+          log("payment_intent_order_not_found", { sessionId });
           return res.json({ received: true });
         }
 
@@ -161,11 +183,17 @@ router.post(
           await order.save();
         }
 
-        await sendOrderEmailsIfNeeded(order, "Webhook");
+        try {
+          await sendOrderEmailsIfNeeded(order, "Webhook");
+
+          log("email_sent_payment_intent", {
+            orderId: order.purchaseOrderId,
+          });
+        } catch (err) {
+          console.error("[Webhook] Email failed (payment_intent):", err);
+        }
       }
 
-      // =========================================================
-      // SUCCESS RESPONSE
       // =========================================================
       return res.json({ received: true });
     } catch (err) {
