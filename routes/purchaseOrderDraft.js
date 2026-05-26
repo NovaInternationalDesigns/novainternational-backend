@@ -163,7 +163,8 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
       : ownerId;
 
     const po = await PurchaseOrderDraft.findOne({ ownerType, ownerId: ownerIdObj });
-    if (!po) return res.status(404).json({ error: "Draft not found" });
+    // Idempotent behavior: if the draft no longer exists, treat as already cleared.
+    if (!po) return res.status(200).json({ message: "Draft already cleared" });
 
     if (productId) {
       console.log("[DELETE] Trying to remove item:", { productId, color, size });
@@ -175,7 +176,8 @@ router.delete("/:ownerType/:ownerId/items", async (req, res) => {
       );
 
       if (newItems.length === po.items.length) {
-        return res.status(404).json({ error: "Item not found in draft" });
+        // Item was not present — idempotent: report success instead of error.
+        return res.status(200).json({ message: "Item already removed or not present" });
       }
 
       const updated = await PurchaseOrderDraft.findOneAndUpdate(

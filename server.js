@@ -33,6 +33,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
 
 const isProdLike = env === "production" || process.env.RENDER === "true";
+const cookieSecureFromEnv = String(process.env.COOKIE_SECURE || "").toLowerCase() === "true";
+const useSecureCookie = isProdLike && cookieSecureFromEnv;
 
 if (isProdLike) {
   app.set("trust proxy", 1);
@@ -94,8 +96,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
       httpOnly: true,
-      secure: isProdLike,
-      sameSite: isProdLike ? "none" : "lax",
+      secure: useSecureCookie,
+      sameSite: useSecureCookie ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })
