@@ -30,6 +30,11 @@ const resolveCustomerEmail = async (order) => {
  */
 export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail") {
     if (!orderLike?._id) return;
+    
+    console.log("📧 EMAIL FLOW START:", {
+    logPrefix,
+    orderId: orderLike?._id,
+    });
 
     const order = await PurchaseOrder.findById(orderLike._id).lean();
     if (!order) return;
