@@ -15,11 +15,12 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL;
 
 if (!RESEND_API_KEY) {
-  console.error("❌ RESEND_API_KEY is missing in environment variables");
+  throw new Error("RESEND_API_KEY missing in production env");
 }
 
 // Create SINGLE Resend instance (IMPORTANT)
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+
 
 // ==============================
 // Resolve user name
@@ -59,6 +60,13 @@ async function userName(orderData) {
 // Generic Email Sender
 // ==============================
 export async function sendEmail(to, subject, content, isHtml = true) {
+  console.log("📧 sendEmail triggered:", {
+    to,
+    subject,
+    hasResend: !!resend,
+    from: FROM_EMAIL,
+  });
+
   if (!to) {
     console.warn("sendEmail: missing recipient");
     return false;
