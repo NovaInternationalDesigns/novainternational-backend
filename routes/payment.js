@@ -245,7 +245,8 @@ async function createOrderFromStripeSession(sessionId) {
     },
   });
 
-  if (order.paymentStatus === "paid") {
+  if ( session.payment_status === "paid" || order.paymentStatus === "paid" )
+   {
     await PurchaseOrderDraft.deleteOne({
       ownerId: order.ownerId,
       ownerType: order.ownerType,
