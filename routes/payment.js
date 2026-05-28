@@ -205,7 +205,8 @@ async function createOrderFromStripeSession(sessionId) {
   );
 
   const shippingCost = 0;
-  const estimatedTax = 0;
+  const taxRate = 0.11;
+  const estimatedTax = subtotal * taxRate;
   const processingFee = subtotal * PROCESSING_FEE_RATE;
 
   const purchaseOrderId =
@@ -227,7 +228,7 @@ async function createOrderFromStripeSession(sessionId) {
     subtotal,
     shippingCost,
     estimatedTax,
-    Processing_Fee: processingFee,
+    processingFee,
     totalAmount: Number(session.amount_total || 0) / 100,
     paymentStatus:
       session.payment_status === "paid" ? "paid" : "pending",
@@ -396,9 +397,13 @@ router.post("/create-checkout-session", async (req, res) => {
     // Also save to draft if owner info is available (for persistent storage)
     if (ownerType && ownerId) {
       try {
-        await PurchaseOrderDraft.findOneAndUpdate(
-          { purchaseOrderId: generatedPurchaseOrderId },
-          {
+       await PurchaseOrderDraft.findOneAndUpdate(
+        {
+          ownerType,
+          ownerId: toObjectId(ownerId),
+        },
+        {
+          $set: {
             purchaseOrderId: generatedPurchaseOrderId,
             ownerType,
             ownerId: toObjectId(ownerId),
@@ -406,8 +411,12 @@ router.post("/create-checkout-session", async (req, res) => {
             shippingInfo,
             estimatedTax,
           },
-          { upsert: true, new: true }
-        );
+        },
+        {
+          upsert: true,
+          returnDocument: "after",
+        }
+      );
       } catch (draftErr) {
         console.warn("Failed to save draft (non-critical):", draftErr.message);
       }

@@ -145,7 +145,7 @@ export async function sendPurchaseOrderConfirmation(email, orderData) {
     <p><b>Subtotal:</b> $${(orderData.subtotal || 0).toFixed(2)}</p>
     <p><b>Shipping:</b> $${(orderData.shippingCost || 0).toFixed(2)}</p>
     <p><b>Tax:</b> $${(orderData.estimatedTax || 0).toFixed(2)}</p>
-    <p><b>Processing Fee:</b> $${(orderData.Processing_Fee || 0).toFixed(2)}</p>
+    <p><b>Processing Fee:</b> $${(orderData.processingFee || 0).toFixed(2)}</p>
 
     <hr/>
 
@@ -188,7 +188,7 @@ export async function sendAdminOrderNotification(orderData) {
     <p><b>Subtotal:</b> $${(orderData.subtotal || 0).toFixed(2)}</p>
     <p><b>Shipping:</b> $${(orderData.shippingCost || 0).toFixed(2)}</p>
     <p><b>Tax:</b> $${(orderData.estimatedTax || 0).toFixed(2)}</p>
-    <p><b>Processing Fee:</b> $${(orderData.Processing_Fee || 0).toFixed(2)}</p>
+    <p><b>Processing Fee:</b> $${(orderData.processingFee || 0).toFixed(2)}</p>
 
     <hr/>
 

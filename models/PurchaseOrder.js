@@ -51,8 +51,7 @@ const purchaseOrderSchema = new mongoose.Schema(
     subtotal: { type: Number, default: 0 },
     shippingCost: { type: Number, default: 0 },
     estimatedTax: { type: Number, default: 0 },
-
-    // Total order amount
+    processingFee: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
 
     // Form data if any (like custom form values)
