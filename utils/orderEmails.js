@@ -47,7 +47,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
         const claimedCustomer = await PurchaseOrder.findOneAndUpdate(
             { _id: order._id, customerEmailSentAt: null },
             { $set: { customerEmailSentAt: reservation, ...(order.email ? {} : { email: customerEmail }) } },
-            { new: true }
+            { returnDocument: "after" }
         ).lean();
 
         if (claimedCustomer) {
@@ -73,7 +73,7 @@ export async function sendOrderEmailsIfNeeded(orderLike, logPrefix = "OrderEmail
         const claimedAdmin = await PurchaseOrder.findOneAndUpdate(
             { _id: order._id, adminEmailSentAt: null },
             { $set: { adminEmailSentAt: reservation } },
-            { new: true }
+            { returnDocument: "after" }
         ).lean();
 
         if (claimedAdmin) {
