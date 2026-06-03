@@ -17,7 +17,7 @@ const toObjectId = (id) => {
 /* =============================
    GET ALL ORDERS (admin only)
 ============================= */
-router.get("/all", verifyToken, requireAdmin, async (req, res) => {
+const fetchAllOrders = async (req, res) => {
   try {
     const orders = await PurchaseOrder.find({}).sort({ createdAt: -1 });
     res.json({ orders, count: orders.length });
@@ -25,7 +25,10 @@ router.get("/all", verifyToken, requireAdmin, async (req, res) => {
     console.error("Fetch all orders error:", err);
     res.status(500).json({ error: "Failed to fetch all orders" });
   }
-});
+};
+
+router.get("/", verifyToken, requireAdmin, fetchAllOrders);
+router.get("/all", verifyToken, requireAdmin, fetchAllOrders);
 
 /* =============================
    GET MY ORDERS (logged-in session)
