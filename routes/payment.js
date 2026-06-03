@@ -154,7 +154,7 @@ async function resolveOwnerFromMetadata(metadata = {}) {
 ----------------------------*/
 async function createOrderFromStripeSession(sessionId) {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
-
+  console.log(session.customer_details.phone);
   if (!session) return null;
 
   const existing = await PurchaseOrder.findOne({
@@ -235,6 +235,7 @@ async function createOrderFromStripeSession(sessionId) {
     shippingInfo: {
       name:
         session.customer_details?.name || metadata.shipping_name || "",
+      phone: session.customer_details?.phone || "",
       address:
         session.customer_details?.address?.line1 || "",
       city:
@@ -436,6 +437,9 @@ router.post("/create-checkout-session", async (req, res) => {
         payment_method_types: ["card"],
         line_items,
         customer: customerId,
+        phone_number_collection: {
+          enabled: true,
+        },
         billing_address_collection: "required",
         shipping_address_collection: {
           allowed_countries: [

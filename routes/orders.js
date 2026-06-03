@@ -3,6 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import PurchaseOrder from "../models/PurchaseOrder.js";
 import Guest from "../models/Guest.js";
+import { verifyToken, requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,6 +13,19 @@ const router = express.Router();
 const toObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
 };
+
+/* =============================
+   GET ALL ORDERS (admin only)
+============================= */
+router.get("/all", verifyToken, requireAdmin, async (req, res) => {
+  try {
+    const orders = await PurchaseOrder.find({}).sort({ createdAt: -1 });
+    res.json({ orders, count: orders.length });
+  } catch (err) {
+    console.error("Fetch all orders error:", err);
+    res.status(500).json({ error: "Failed to fetch all orders" });
+  }
+});
 
 /* =============================
    GET MY ORDERS (logged-in session)

@@ -41,6 +41,7 @@ const purchaseOrderSchema = new mongoose.Schema(
     // Shipping info for Stripe checkout
     shippingInfo: {
       name: { type: String },
+      phone: { type: String },
       address: { type: String },
       city: { type: String },
       postalCode: { type: String },
