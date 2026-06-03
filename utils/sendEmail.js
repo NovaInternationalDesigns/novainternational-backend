@@ -123,6 +123,19 @@ export async function sendPurchaseOrderConfirmation(email, orderData) {
 
     <p><b>Purchase Order ID:</b> ${orderData.purchaseOrderId}</p>
 
+    <h3>Customer Shipping Address</h3>
+
+    <p>
+      ${orderData.shippingInfo?.name || ""}
+      <br/>
+      ${orderData.shippingInfo?.address || ""}
+      <br/>
+      ${orderData.shippingInfo?.city || ""}
+      ${orderData.shippingInfo?.postalCode || ""}
+      <br/>
+      ${orderData.shippingInfo?.country || ""}
+    </p>
+
     <table border="1" cellpadding="6" cellspacing="0">
       <thead>
         <tr>
