@@ -118,7 +118,7 @@ export async function sendPurchaseOrderConfirmation(email, orderData) {
     .join("");
 
   const html = `
-    <h2>Thank you for your order!</h2>
+    <h2>Your Purchase Order Received</h2>
     <p>Hi ${customerName}</p>
 
     <p><b>Purchase Order ID:</b> ${orderData.purchaseOrderId}</p>

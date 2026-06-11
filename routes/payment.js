@@ -431,30 +431,25 @@ router.post("/create-checkout-session", async (req, res) => {
       guestSessionId: guestSessionId || null,
     };
 
-    const session = await retryStripe(() =>
-      stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        line_items,
-        customer: customerId,
-        phone_number_collection: {
-          enabled: true,
-        },
-        billing_address_collection: "required",
-        shipping_address_collection: {
-          allowed_countries: [
-            "US",
-            "CA",
-            "GB",
-            "AU",
-            "IN",
-          ],
-        },
-        metadata,
-        success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${frontendUrl}/checkout`,
-      })
-    );
+  const session = await retryStripe(() =>
+    stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items,
+      customer: customerId,
+
+      phone_number_collection: {
+        enabled: true,
+      },
+
+      billing_address_collection: "auto",
+
+      metadata,
+
+      success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/checkout`,
+    })
+  );
 
     res.json({
       url: session.url,
