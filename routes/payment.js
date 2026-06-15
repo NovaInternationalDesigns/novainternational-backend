@@ -404,22 +404,6 @@ router.post("/create-checkout-session", async (req, res) => {
       });
     }
 
-    const customers = await stripe.customers.list({
-      email: customerEmail,
-      limit: 1,
-    });
-
-    const customerId =
-      customers.data[0]?.id ||
-      (
-        await stripe.customers.create({
-          email: customerEmail,
-          name: [shippingInfo?.firstName, shippingInfo?.lastName]
-            .filter(Boolean)
-            .join(" ") || "Guest User",
-        })
-      ).id;
-
     const frontendUrl =
       req.headers.origin ||
       process.env.VITE_FRONTEND_URL ||
@@ -441,58 +425,88 @@ router.post("/create-checkout-session", async (req, res) => {
     // Also save to draft if owner info is available (for persistent storage)
     if (ownerType && ownerId) {
       try {
-       await PurchaseOrderDraft.findOneAndUpdate(
-        {
-          ownerType,
-          ownerId: toObjectId(ownerId),
-        },
-        {
-          $set: {
-            purchaseOrderId: generatedPurchaseOrderId,
+        await PurchaseOrderDraft.findOneAndUpdate(
+          {
             ownerType,
             ownerId: toObjectId(ownerId),
-            items,
-            shippingInfo,
-            estimatedTax,
           },
-        },
-        {
-          upsert: true,
-          returnDocument: "after",
-        }
-      );
+          {
+            $set: {
+              purchaseOrderId: generatedPurchaseOrderId,
+              ownerType,
+              ownerId: toObjectId(ownerId),
+              items,
+              shippingInfo,
+              estimatedTax,
+            },
+          },
+          {
+            upsert: true,
+            returnDocument: "after",
+          }
+        );
       } catch (draftErr) {
         console.warn("Failed to save draft (non-critical):", draftErr.message);
       }
     }
 
     const metadata = {
-    purchaseOrderId: String(generatedPurchaseOrderId || ""),
-    orderId: String(orderIdRaw || ""),
-    ownerType: String(ownerType || ""),
-    ownerId: String(ownerId || ""),
-    guestSessionId: String(guestSessionId || ""),
-  };
+      purchaseOrderId: String(generatedPurchaseOrderId || ""),
+      orderId: String(orderIdRaw || ""),
+      ownerType: String(ownerType || ""),
+      ownerId: String(ownerId || ""),
+      guestSessionId: String(guestSessionId || ""),
+    };
 
-  const session = await retryStripe(() =>
-    stripe.checkout.sessions.create({
+    console.log("Creating Stripe checkout session", {
+      customerEmail,
+      customerId,
+      lineItemsCount: line_items.length,
+      subtotal,
+      estimatedTax,
+      processingFee,
+      metadata,
+    });
+
+    const sessionParams = {
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
-      customer: customerId,
-
+      customer_email: customerEmail,
       phone_number_collection: {
         enabled: true,
       },
-
       billing_address_collection: "auto",
-
       metadata,
-
+      payment_intent_data: {
+        receipt_email: customerEmail,
+      },
       success_url: `${frontendUrl}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/checkout`,
-    })
-  );
+    };
+
+    console.log("Creating Stripe checkout session params", {
+      customerId,
+      customerEmail,
+      lineItemsCount: line_items.length,
+      sessionParams: {
+        ...sessionParams,
+        line_items: line_items.map((item) => ({
+          price_data: { currency: item.price_data.currency },
+          quantity: item.quantity,
+        })),
+      },
+    });
+
+    const session = await retryStripe(() =>
+      stripe.checkout.sessions.create(sessionParams)
+    );
+
+    console.log("Stripe checkout session created", {
+      sessionId: session.id,
+      sessionUrl: session.url,
+      paymentStatus: session.payment_status,
+    });
 
     res.json({
       url: session.url,
