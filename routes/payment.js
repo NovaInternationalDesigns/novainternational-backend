@@ -375,8 +375,9 @@ router.post("/create-checkout-session", async (req, res) => {
       (
         await stripe.customers.create({
           email: customerEmail,
-          name:
-            shippingInfo?.firstName || "Guest User",
+          name: [shippingInfo?.firstName, shippingInfo?.lastName]
+            .filter(Boolean)
+            .join(" ") || "Guest User",
         })
       ).id;
 
