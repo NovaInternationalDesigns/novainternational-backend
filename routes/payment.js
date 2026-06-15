@@ -289,6 +289,24 @@ router.post("/create-checkout-session", async (req, res) => {
       form,
     } = req.body;
 
+    // Validate shippingInfo
+    if (!shippingInfo || typeof shippingInfo !== "object") {
+      return res.status(400).json({
+        error: "Valid shipping information is required",
+      });
+    }
+
+    // Validate essential shipping fields
+    const requiredFields = ["email", "firstName", "lastName", "phone", "address", "city", "zip", "country"];
+    const missingFields = requiredFields.filter(field => !shippingInfo[field]?.toString().trim());
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: "Missing required shipping fields",
+        missingFields,
+      });
+    }
+
     let dbCustomerEmail = null;
 
     if (orderIdRaw) {
@@ -322,46 +340,67 @@ router.post("/create-checkout-session", async (req, res) => {
         error: "Items required",
       });
 
-    const line_items = items.map((it) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: it.name || it.description || "Product",
-        },
-        unit_amount: Math.round((it.price || 0) * 100),
-      },
-      quantity: Math.max(1, it.qty || 1),
-    }));
+    const line_items = items
+      .map((it) => {
+        const unitAmount = Math.round((Number(it.price) || 0) * 100);
+        if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
+          console.warn(`Skipping item with invalid price:`, it);
+          return null;
+        }
+        return {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: it.name || it.description || "Product",
+            },
+            unit_amount: unitAmount,
+          },
+          quantity: Math.max(1, Number(it.qty) || 1),
+        };
+      })
+      .filter(Boolean);
 
     const subtotal = items.reduce(
       (s, it) =>
         s +
-        Number(it.qty || 1) * Number(it.price || 0),
+        (Number(it.qty) || 1) * (Number(it.price) || 0),
       0
     );
 
     const processingFee =
-      subtotal * PROCESSING_FEE_RATE;
+      Math.round(subtotal * PROCESSING_FEE_RATE * 100) / 100;
 
-    if (estimatedTax) {
-      line_items.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: "Estimated Tax" },
-          unit_amount: Math.round(estimatedTax * 100),
-        },
-        quantity: 1,
-      });
+    if (estimatedTax && estimatedTax > 0) {
+      const taxAmount = Math.round(estimatedTax * 100);
+      if (Number.isFinite(taxAmount) && taxAmount > 0) {
+        line_items.push({
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Estimated Tax" },
+            unit_amount: taxAmount,
+          },
+          quantity: 1,
+        });
+      }
     }
 
-    if (processingFee) {
-      line_items.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: "Processing Fee" },
-          unit_amount: Math.round(processingFee * 100),
-        },
-        quantity: 1,
+    if (processingFee && processingFee > 0) {
+      const feeAmount = Math.round(processingFee * 100);
+      if (Number.isFinite(feeAmount) && feeAmount > 0) {
+        line_items.push({
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Processing Fee" },
+            unit_amount: feeAmount,
+          },
+          quantity: 1,
+        });
+      }
+    }
+
+    if (!line_items.length) {
+      return res.status(400).json({
+        error: "No valid line items after validation",
       });
     }
 
