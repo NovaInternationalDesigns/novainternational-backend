@@ -154,7 +154,10 @@ async function resolveOwnerFromMetadata(metadata = {}) {
 ----------------------------*/
 async function createOrderFromStripeSession(sessionId) {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
-  console.log(session.customer_details.phone);
+  console.log(
+  "Customer phone:",
+  session.customer_details?.phone
+);
   if (!session) return null;
 
   const existing = await PurchaseOrder.findOne({
@@ -424,12 +427,12 @@ router.post("/create-checkout-session", async (req, res) => {
     }
 
     const metadata = {
-      purchaseOrderId: generatedPurchaseOrderId,
-      orderId: orderIdRaw,
-      ownerType: ownerType || null,
-      ownerId: ownerId || null,
-      guestSessionId: guestSessionId || null,
-    };
+    purchaseOrderId: String(generatedPurchaseOrderId || ""),
+    orderId: String(orderIdRaw || ""),
+    ownerType: String(ownerType || ""),
+    ownerId: String(ownerId || ""),
+    guestSessionId: String(guestSessionId || ""),
+  };
 
   const session = await retryStripe(() =>
     stripe.checkout.sessions.create({
@@ -462,6 +465,9 @@ router.post("/create-checkout-session", async (req, res) => {
       details: err.message,
       stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
     });
+
+    console.log("Checkout Session ID:", session.id);
+    console.log("Checkout URL:", session.url);
   }
 });
 
