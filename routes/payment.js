@@ -65,7 +65,7 @@ const splitStripeLineItems = (lineItems = []) => {
   const items = [];
   let shippingCost = 0;
   let estimatedTax = 0;
-  let Processing_Fee = 0;
+  let processingFee = 0;
 
   for (const li of lineItems) {
     const label = String(li.description || "").trim();
@@ -82,9 +82,9 @@ const splitStripeLineItems = (lineItems = []) => {
     }
 
     if (label === "Processing Fee") {
-    Processing_Fee += amount;
-    continue;
-}
+      processingFee += amount;
+      continue;
+    }
 
     const price = qty > 0 ? amount / qty : 0;
     items.push({
@@ -96,7 +96,7 @@ const splitStripeLineItems = (lineItems = []) => {
   }
 
   const subtotal = items.reduce((sum, item) => sum + Number(item.total || 0), 0);
-  return { items, subtotal, shippingCost, estimatedTax, Processing_Fee };
+  return { items, subtotal, shippingCost, estimatedTax, processingFee };
 };
 
 async function resolveOwnerFromMetadata(metadata = {}) {
@@ -129,7 +129,7 @@ async function createOrderFromStripeSession(sessionId) {
   if (!ownerType || !ownerId) return null;
 
   const lineItemsRes = await stripe.checkout.sessions.listLineItems(session.id, { limit: 100 });
-  const { items, subtotal, shippingCost, estimatedTax, Processing_Fee } = splitStripeLineItems(lineItemsRes.data);
+  const { items, subtotal, shippingCost, estimatedTax, processingFee } = splitStripeLineItems(lineItemsRes.data);
 
   if (!items.length) return null;
 
@@ -150,7 +150,7 @@ async function createOrderFromStripeSession(sessionId) {
     subtotal,
     shippingCost,
     estimatedTax,
-    Processing_Fee,
+    processingFee,
     totalAmount: Number(session.amount_total || 0) / 100,
     paymentStatus: session.payment_status === "paid" ? "paid" : "pending",
     shippingInfo: {
