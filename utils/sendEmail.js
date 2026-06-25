@@ -203,6 +203,19 @@ export async function sendAdminOrderNotification(orderData) {
     <p><b>Tax:</b> $${(orderData.estimatedTax || 0).toFixed(2)}</p>
     <p><b>Processing Fee:</b> $${(orderData.processingFee || 0).toFixed(2)}</p>
 
+    <h3>Customer Shipping Address</h3>
+
+    <p>
+      ${orderData.shippingInfo?.name || ""}
+      <br/>
+      ${orderData.shippingInfo?.address || ""}
+      <br/>
+      ${orderData.shippingInfo?.city || ""}
+      ${orderData.shippingInfo?.postalCode || ""}
+      <br/>
+      ${orderData.shippingInfo?.country || ""}
+    </p>
+
     <hr/>
 
     <p><b>Total:</b> $${(orderData.totalAmount || 0).toFixed(2)}</p>
